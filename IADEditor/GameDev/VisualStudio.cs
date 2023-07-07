@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using IADEditor.GameProject;
 using IADEditor.Utilities;
 using IADEditor.Utilities.Enums;
 
@@ -13,13 +14,15 @@ namespace IADEditor.GameDev
     {
         private static EnvDTE80.DTE2 _vsInstance = null;
         private static readonly string _programId = "VisualStudio.DTE.17.0";
+        public static bool BuildSucceeded { get; private set; } = true;
+        public static bool BuildDone { get; private set; } = true;
 
         [DllImport("ole32.dll")]
         private static extern int GetRunningObjectTable(uint reserved, out IRunningObjectTable pprot);
 
         [DllImport("ole32.dll")]
         private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
-        
+
         public static void OpenVisualStudio(string solutionPath)
         {
             IRunningObjectTable rot = null;
@@ -87,9 +90,20 @@ namespace IADEditor.GameDev
             }
             finally
             {
-                if (monikerTable != null) { Marshal.ReleaseComObject(monikerTable); }
-                if (rot != null) { Marshal.ReleaseComObject(rot); }
-                if (bindCtx != null) { Marshal.ReleaseComObject(bindCtx); }
+                if (monikerTable != null)
+                {
+                    Marshal.ReleaseComObject(monikerTable);
+                }
+
+                if (rot != null)
+                {
+                    Marshal.ReleaseComObject(rot);
+                }
+
+                if (bindCtx != null)
+                {
+                    Marshal.ReleaseComObject(bindCtx);
+                }
             }
         }
 
@@ -100,7 +114,7 @@ namespace IADEditor.GameDev
                 _vsInstance.ExecuteCommand("File.SaveAll");
                 _vsInstance.Solution.Close(true);
             }
-            
+
             _vsInstance?.Quit();
         }
 
@@ -136,20 +150,102 @@ namespace IADEditor.GameDev
                     string? cpp = files.FirstOrDefault(x => Path.GetExtension(x) == ".cpp");
                     if (!string.IsNullOrEmpty(cpp))
                     {
-                        _vsInstance.ItemOperations.OpenFile(cpp, "{7651A703-06E5-11D1-8EBD-00A0C90F26EA}").Visible = true;
+                        _vsInstance.ItemOperations.OpenFile(cpp, "{7651A703-06E5-11D1-8EBD-00A0C90F26EA}").Visible =
+                            true;
                     }
+
                     _vsInstance.MainWindow.Activate();
                     _vsInstance.MainWindow.Visible = true;
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to add files to Visual Studio project");
                 Debug.WriteLine("Failed to add files to Visual Studio project");
                 return false;
             }
 
             return true;
+        }
+
+        public static bool IsDebugging()
+        {
+            bool result = false;
+
+            for (int i = 0; i < 3; i++)
+            {
+                try
+                {
+                    result = _vsInstance != null &&
+                             (_vsInstance.Debugger.CurrentProgram != null ||
+                              _vsInstance.Debugger.CurrentMode == EnvDTE.dbgDebugMode.dbgRunMode);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                    if (!result)
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public static void BuildSolution(Project project, string buildConfig, bool showWindow = true)
+        {
+            if (IsDebugging())
+            {
+                Logger.Log(MessageType.Error, "Visual Studio is currently running a process");
+                return;
+            }
+
+            OpenVisualStudio(project.Solution);
+            BuildDone = BuildSucceeded = false;
+
+            try
+            {
+                if (!_vsInstance.Solution.IsOpen)
+                {
+                    _vsInstance.Solution.Open(project.Solution);
+                }
+
+                _vsInstance.MainWindow.Visible = showWindow;
+
+                _vsInstance.Events.BuildEvents.OnBuildProjConfigBegin += OnBuildSolutionBegin;
+                _vsInstance.Events.BuildEvents.OnBuildProjConfigDone += OnBuildSolutionDone;
+                
+                _vsInstance.Solution.SolutionBuild.SolutionConfigurations.Item(buildConfig).Activate();
+                _vsInstance.ExecuteCommand("Build.BuildSolution");
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                Debug.WriteLine($"Attempt {1}: failed to build {project.Name}");
+                throw;
+            }
+        }
+
+        private static void OnBuildSolutionDone(string project, string projectConfig, string platform, string solutionConfig, bool success)
+        {
+            if (BuildDone) { return; }
+
+            if (success)
+            {
+                Logger.Log(MessageType.Info, $"Building {projectConfig} configuration succeeded");
+            }
+            else
+            {
+                Logger.Log(MessageType.Info, $"Building {projectConfig} configuration failed");
+            }
+
+            BuildDone = true;
+            BuildSucceeded = success;
+        }
+
+        private static void OnBuildSolutionBegin(string project, string projectConfig, string platform, string solutionConfig)
+        {
+            Logger.Log(MessageType.Info, $"Building {project}, {projectConfig}, {platform}, {solutionConfig}");
         }
     }
 }

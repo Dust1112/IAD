@@ -1,4 +1,5 @@
-﻿using IADEditor.Common;
+﻿using System;
+using IADEditor.Common;
 using IADEditor.Utilities;
 using IADEditor.Utilities.Enums;
 using System.Collections.ObjectModel;
@@ -12,6 +13,14 @@ using IADEditor.GameDev;
 
 namespace IADEditor.GameProject
 {
+    public enum BuildConfiguration
+    {
+        Debug,
+        DebugEditor,
+        Release,
+        ReleaseEditor,
+    }
+    
     [DataContract(Name = "Game")]
     public class Project : ViewModelBase
     {
@@ -42,6 +51,28 @@ namespace IADEditor.GameProject
                 }
             }
         }
+        
+        private static readonly string[] _buildConfigurationNames = new[] { "Debug", "Release" };
+
+        private int _buildConfig;
+        public int BuildConfig
+        {
+            get => _buildConfig;
+            set
+            {
+                if (_buildConfig != value)
+                {
+                    _buildConfig = value;
+                    OnPropertyChanged(nameof(BuildConfig));
+                }
+            }
+        }
+
+        public BuildConfiguration StandAloneBuildConfiguration =>
+            BuildConfig == 0 ? BuildConfiguration.Debug : BuildConfiguration.Release;
+        
+        public BuildConfiguration DllBuildConfiguration =>
+            BuildConfig == 0 ? BuildConfiguration.DebugEditor : BuildConfiguration.ReleaseEditor;
 
         public static UndoRedo UndoRedo { get; } = new UndoRedo();
 
@@ -50,6 +81,7 @@ namespace IADEditor.GameProject
         public ICommand AddSceneCommand { get; private set; }
         public ICommand RemoveSceneCommand { get; private set; }
         public ICommand SaveCommand { get; private set; }
+        public ICommand CompileCommand { get; private set; }
 
         public Project(string name, string path)
         {
@@ -128,6 +160,37 @@ namespace IADEditor.GameProject
             UndoCommand = new RelayCommand<object>(x => UndoRedo.Undo(), x => UndoRedo.UndoList.Any());
             RedoCommand = new RelayCommand<object>(x => UndoRedo.Redo(), x => UndoRedo.RedoList.Any());
             SaveCommand = new RelayCommand<object>(x => Save(this));
+            CompileCommand = new RelayCommand<bool>(x => BuildGameCodeDll(x),
+                x => !VisualStudio.IsDebugging() && VisualStudio.BuildDone);
         }
+
+        private void BuildGameCodeDll(bool showWindow = true)
+        {
+            try
+            {
+                UnloadGameCodeDll();
+                VisualStudio.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow);
+                if (VisualStudio.BuildSucceeded) ;
+                LoadGameCodeDll();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                throw;
+            }
+        }
+
+        private void LoadGameCodeDll()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        private void UnloadGameCodeDll()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        private static string GetConfigurationName(BuildConfiguration configuration) =>
+            _buildConfigurationNames[(int)configuration];
     }
 }
