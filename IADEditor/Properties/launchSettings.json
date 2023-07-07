@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "IADEditor": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

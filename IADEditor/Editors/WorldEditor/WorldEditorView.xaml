@@ -1,0 +1,78 @@
+﻿<UserControl x:Class="IADEditor.Editors.WorldEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:IADEditor.Editors" 
+             xmlns:utl="clr-namespace:IADEditor.Utilities" 
+             xmlns:cltr="clr-namespace:IADEditor.Utilities.Controls"
+             xmlns:gameproject="clr-namespace:IADEditor.GameProject" 
+             d:DataContext="{d:DesignInstance Type=gameproject:Project}"
+             mc:Ignorable="d" Focusable="True"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.InputBindings>
+        <KeyBinding Command="{Binding UndoCommand}" Key="Z" Modifiers="Ctrl"/>
+        <KeyBinding Command="{Binding RedoCommand}" Key="Z" Modifiers="Ctrl+Shift"/>
+        <KeyBinding Command="{Binding SaveCommand}" Key="S" Modifiers="Ctrl"/>
+    </UserControl.InputBindings>
+        <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <Button Content="Undo" Command="{Binding UndoCommand}"/>
+            <Button Content="Redo" Command="{Binding RedoCommand}" Margin="5, 0, 0, 0"/>
+            <Button Content="New Script" Click="OnNewScript_Button_Click"></Button>
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Border Background="{DynamicResource Editor.Selected.BackgroundBrush}">
+                    <StackPanel VerticalAlignment="Center">
+                        <cltr:NumberBox VerticalAlignment="Center" Value="0" Multiplier="1" Foreground="{StaticResource Editor.FontBrush}"/>
+                        <cltr:ScalarBox Value="10" Multiplier="10"/>
+                        <cltr:VectorBox X="0" Y="1" Z="2" W="3" VectorType="Vector2"/>
+                        <cltr:VectorBox X="0" Y="1" Z="2" W="3" VectorType="Vector3"/>
+                        <cltr:VectorBox X="0" Y="1" Z="2" W="3" VectorType="Vector4"/>
+
+                        <cltr:VectorBox X="0" Y="1" Z="2" W="3" VectorType="Vector2" Orientation="Vertical"/>
+                        <cltr:VectorBox X="0" Y="1" Z="2" W="3" VectorType="Vector3" Orientation="Vertical"/>
+                        <cltr:VectorBox X="0" Y="1" Z="2" W="3" VectorType="Vector4" Orientation="Vertical"/>
+                    </StackPanel>
+                </Border>
+                <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch"
+                          VerticalAlignment="Top" Background="Transparent"/>
+                <TabControl Grid.Row="1" Background="{DynamicResource Editor.Window.GrayBrush2}"
+                            Margin="0,5,0,0">
+                    <TabItem Header="History">
+                        <utl:UndoRedoView DataContext="{Binding UndoRedo}"/>
+                    </TabItem>
+                    <TabItem Header="Log">
+                        <utl:LoggerView/>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Left"
+                      VerticalAlignment="Stretch" Background="Transparent"/>
+            <Grid Grid.Column="1" Margin="5,0,0,0" MinWidth="250">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch"
+                          VerticalAlignment="Top" Background="Transparent"/>
+                <local:ProjectLayoutView Background="{DynamicResource Editor.Window.GrayBrush3}"/>
+                <local:GameEntityView Grid.Row="1" Background="{DynamicResource Editor.Window.GrayBrush3}"
+                                      Margin="0,5,0,0"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

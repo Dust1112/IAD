@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="Common\CommonHeaders.hpp" />
+    <ClInclude Include="Common\PrimitiveTypes.hpp" />
+    <ClInclude Include="Common\Id.hpp" />
+    <ClInclude Include="Components\Entity.hpp" />
+    <ClInclude Include="Components\ComponentsCommon.hpp" />
+    <ClInclude Include="Components\Transform.hpp" />
+    <ClInclude Include="Utilities\Utilities.h" />
+    <ClInclude Include="EngineAPI\GameEntity.hpp" />
+    <ClInclude Include="EngineAPI\TransformComoponent.hpp" />
+    <ClInclude Include="Utilities\MathTypes.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Components\Entity.cpp" />
+    <ClCompile Include="Components\Transform.cpp" />
+  </ItemGroup>
+</Project>
