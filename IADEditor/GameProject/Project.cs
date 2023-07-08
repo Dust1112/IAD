@@ -15,10 +15,10 @@ namespace IADEditor.GameProject
 {
     public enum BuildConfiguration
     {
-        Debug,
         DebugEditor,
-        Release,
         ReleaseEditor,
+        Release,
+        Debug,
     }
     
     [DataContract(Name = "Game")]
@@ -52,7 +52,7 @@ namespace IADEditor.GameProject
             }
         }
         
-        private static readonly string[] _buildConfigurationNames = new[] { "Debug", "Release" };
+        private static readonly string[] _buildConfigurationNames = new[] { "DebugEditor", "ReleaseEditor" };
 
         private int _buildConfig;
         public int BuildConfig
@@ -182,12 +182,12 @@ namespace IADEditor.GameProject
 
         private void LoadGameCodeDll()
         {
-            throw new System.NotImplementedException();
+            
         }
 
         private void UnloadGameCodeDll()
         {
-            throw new System.NotImplementedException();
+            
         }
 
         private static string GetConfigurationName(BuildConfiguration configuration) =>
