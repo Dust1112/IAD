@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using IADEditor.DLLWrapper;
@@ -124,7 +125,7 @@ namespace IADEditor.GameProject
         }
 
         [OnDeserialized]
-        private void OnDeserialized(StreamingContext context)
+        private async void OnDeserialized(StreamingContext context)
         {
             if (_scenes != null)
             {
@@ -133,46 +134,18 @@ namespace IADEditor.GameProject
             }
 
             ActiveScene = Scenes.FirstOrDefault(x => x.IsActive)!;
-            
-            BuildGameCodeDll(false);
+            await BuildGameCodeDll(false);
 
-            AddSceneCommand = new RelayCommand<object>(x =>
-            {
-                AddScene($"New Scene {_scenes?.Count}");
-                
-                Scene newScene = _scenes!.Last();
-                int sceneIndex = _scenes!.Count - 1;
-
-                UndoRedo.Add(new UndoRedoAction(
-                    () => RemoveScene(newScene),
-                    () => _scenes.Insert(sceneIndex, newScene),
-                    $"Add {newScene.Name}"));
-            });
-
-            RemoveSceneCommand = new RelayCommand<Scene>(x =>
-            {
-                int sceneIndex = _scenes!.IndexOf(x);
-                RemoveScene(x);
-
-                UndoRedo.Add(new UndoRedoAction(
-                    () => _scenes.Insert(sceneIndex, x),
-                    () => RemoveScene(x),
-                    $"Remove {x.Name}"));
-            }, x => !x.IsActive);
-
-            UndoCommand = new RelayCommand<object>(x => UndoRedo.Undo(), x => UndoRedo.UndoList.Any());
-            RedoCommand = new RelayCommand<object>(x => UndoRedo.Redo(), x => UndoRedo.RedoList.Any());
-            SaveCommand = new RelayCommand<object>(x => Save(this));
-            CompileCommand = new RelayCommand<bool>(x => BuildGameCodeDll(x),
-                x => !VisualStudio.IsDebugging() && VisualStudio.BuildDone);
+            SetCommands();
         }
 
-        private void BuildGameCodeDll(bool showWindow = true)
+        private async Task BuildGameCodeDll(bool showWindow = true)
         {
             try
             {
                 UnloadGameCodeDll();
-                VisualStudio.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow);
+                await Task.Run(() =>
+                    VisualStudio.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow));
                 if (VisualStudio.BuildSucceeded)
                 {
                     LoadGameCodeDll();
@@ -209,5 +182,45 @@ namespace IADEditor.GameProject
 
         private static string GetConfigurationName(BuildConfiguration configuration) =>
             _buildConfigurationNames[(int)configuration];
+
+        private void SetCommands()
+        {
+            AddSceneCommand = new RelayCommand<object>(x =>
+            {
+                AddScene($"New Scene {_scenes?.Count}");
+                
+                Scene newScene = _scenes!.Last();
+                int sceneIndex = _scenes!.Count - 1;
+
+                UndoRedo.Add(new UndoRedoAction(
+                    () => RemoveScene(newScene),
+                    () => _scenes.Insert(sceneIndex, newScene),
+                    $"Add {newScene.Name}"));
+            });
+
+            RemoveSceneCommand = new RelayCommand<Scene>(x =>
+            {
+                int sceneIndex = _scenes!.IndexOf(x);
+                RemoveScene(x);
+
+                UndoRedo.Add(new UndoRedoAction(
+                    () => _scenes.Insert(sceneIndex, x),
+                    () => RemoveScene(x),
+                    $"Remove {x.Name}"));
+            }, x => !x.IsActive);
+
+            UndoCommand = new RelayCommand<object>(x => UndoRedo.Undo(), x => UndoRedo.UndoList.Any());
+            RedoCommand = new RelayCommand<object>(x => UndoRedo.Redo(), x => UndoRedo.RedoList.Any());
+            SaveCommand = new RelayCommand<object>(x => Save(this));
+            CompileCommand = new RelayCommand<bool>( async x => await BuildGameCodeDll(x),
+                x => !VisualStudio.IsDebugging() && VisualStudio.BuildDone);
+            
+            OnPropertyChanged(nameof(AddSceneCommand));
+            OnPropertyChanged(nameof(RemoveSceneCommand));
+            OnPropertyChanged(nameof(UndoCommand));
+            OnPropertyChanged(nameof(RedoCommand));
+            OnPropertyChanged(nameof(SaveCommand));
+            OnPropertyChanged(nameof(CompileCommand));
+        }
     }
 }
