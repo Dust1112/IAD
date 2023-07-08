@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Windows;
 using System.Windows.Input;
+using IADEditor.DLLWrapper;
 using IADEditor.GameDev;
 
 namespace IADEditor.GameProject
@@ -132,6 +133,8 @@ namespace IADEditor.GameProject
             }
 
             ActiveScene = Scenes.FirstOrDefault(x => x.IsActive)!;
+            
+            BuildGameCodeDll(false);
 
             AddSceneCommand = new RelayCommand<object>(x =>
             {
@@ -170,8 +173,10 @@ namespace IADEditor.GameProject
             {
                 UnloadGameCodeDll();
                 VisualStudio.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow);
-                if (VisualStudio.BuildSucceeded) ;
-                LoadGameCodeDll();
+                if (VisualStudio.BuildSucceeded)
+                {
+                    LoadGameCodeDll();
+                }
             }
             catch (Exception e)
             {
@@ -182,12 +187,24 @@ namespace IADEditor.GameProject
 
         private void LoadGameCodeDll()
         {
-            
+            string configName = GetConfigurationName(DllBuildConfiguration);
+            string dll = $@"{Path}x64\{configName}\{Name}.dll";
+            if (File.Exists(dll) && EngineAPI.LoadGameCodeDll(dll) != 0)
+            {
+                Logger.Log(MessageType.Info, "Game code DLL loaded successfully.");
+            }
+            else
+            {
+                Logger.Log(MessageType.Warning, "Failed to load game code DLL file. Try to build the project first.");
+            }
         }
 
         private void UnloadGameCodeDll()
         {
-            
+            if (EngineAPI.UnloadGameCodeDll() != 0)
+            {
+                Logger.Log(MessageType.Info, "Game code DLL unloaded.");
+            }
         }
 
         private static string GetConfigurationName(BuildConfiguration configuration) =>

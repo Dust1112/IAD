@@ -214,7 +214,19 @@ namespace IADEditor.GameDev
 
                 _vsInstance.Events.BuildEvents.OnBuildProjConfigBegin += OnBuildSolutionBegin;
                 _vsInstance.Events.BuildEvents.OnBuildProjConfigDone += OnBuildSolutionDone;
-                
+
+                try
+                {
+                    foreach (string pdbFile in Directory.GetFiles(Path.Combine($"{project.Path}", $@"x64\{buildConfig}"), "*.pdb"))
+                    {
+                        File.Delete(pdbFile);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+
                 _vsInstance.Solution.SolutionBuild.SolutionConfigurations.Item(buildConfig).Activate();
                 _vsInstance.ExecuteCommand("Build.BuildSolution");
             }
@@ -236,7 +248,7 @@ namespace IADEditor.GameDev
             }
             else
             {
-                Logger.Log(MessageType.Info, $"Building {projectConfig} configuration failed");
+                Logger.Log(MessageType.Error, $"Building {projectConfig} configuration failed");
             }
 
             BuildDone = true;
