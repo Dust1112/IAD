@@ -65,7 +65,7 @@ namespace IADEditor.Utilities.Controls
                 {
                     if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) { multiplier = 0.001; }
                     else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) { multiplier = 0.1; }
-                    else { multiplier = 0.1; }
+                    else { multiplier = 0.01; }
 
                     double newValue = originalValue + (d * multiplier * Multiplier);
                     Value = string.Format(CultureInfo.InvariantCulture, "{0:N3}", newValue);

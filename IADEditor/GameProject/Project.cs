@@ -1,4 +1,5 @@
-﻿using IADEditor.Common;
+﻿using System;
+using IADEditor.Common;
 using IADEditor.Utilities;
 using IADEditor.Utilities.Enums;
 using System.Collections.ObjectModel;
@@ -6,12 +7,22 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using IADEditor.DLLWrapper;
 using IADEditor.GameDev;
 
 namespace IADEditor.GameProject
 {
+    public enum BuildConfiguration
+    {
+        DebugEditor,
+        ReleaseEditor,
+        Release,
+        Debug,
+    }
+    
     [DataContract(Name = "Game")]
     public class Project : ViewModelBase
     {
@@ -42,6 +53,28 @@ namespace IADEditor.GameProject
                 }
             }
         }
+        
+        private static readonly string[] _buildConfigurationNames = new[] { "DebugEditor", "ReleaseEditor" };
+
+        private int _buildConfig;
+        public int BuildConfig
+        {
+            get => _buildConfig;
+            set
+            {
+                if (_buildConfig != value)
+                {
+                    _buildConfig = value;
+                    OnPropertyChanged(nameof(BuildConfig));
+                }
+            }
+        }
+
+        public BuildConfiguration StandAloneBuildConfiguration =>
+            BuildConfig == 0 ? BuildConfiguration.Debug : BuildConfiguration.Release;
+        
+        public BuildConfiguration DllBuildConfiguration =>
+            BuildConfig == 0 ? BuildConfiguration.DebugEditor : BuildConfiguration.ReleaseEditor;
 
         public static UndoRedo UndoRedo { get; } = new UndoRedo();
 
@@ -50,6 +83,7 @@ namespace IADEditor.GameProject
         public ICommand AddSceneCommand { get; private set; }
         public ICommand RemoveSceneCommand { get; private set; }
         public ICommand SaveCommand { get; private set; }
+        public ICommand CompileCommand { get; private set; }
 
         public Project(string name, string path)
         {
@@ -91,7 +125,7 @@ namespace IADEditor.GameProject
         }
 
         [OnDeserialized]
-        private void OnDeserialized(StreamingContext context)
+        private async void OnDeserialized(StreamingContext context)
         {
             if (_scenes != null)
             {
@@ -100,7 +134,57 @@ namespace IADEditor.GameProject
             }
 
             ActiveScene = Scenes.FirstOrDefault(x => x.IsActive)!;
+            await BuildGameCodeDll(false);
 
+            SetCommands();
+        }
+
+        private async Task BuildGameCodeDll(bool showWindow = true)
+        {
+            try
+            {
+                UnloadGameCodeDll();
+                await Task.Run(() =>
+                    VisualStudio.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow));
+                if (VisualStudio.BuildSucceeded)
+                {
+                    LoadGameCodeDll();
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                throw;
+            }
+        }
+
+        private void LoadGameCodeDll()
+        {
+            string configName = GetConfigurationName(DllBuildConfiguration);
+            string dll = $@"{Path}x64\{configName}\{Name}.dll";
+            if (File.Exists(dll) && EngineAPI.LoadGameCodeDll(dll) != 0)
+            {
+                Logger.Log(MessageType.Info, "Game code DLL loaded successfully.");
+            }
+            else
+            {
+                Logger.Log(MessageType.Warning, "Failed to load game code DLL file. Try to build the project first.");
+            }
+        }
+
+        private void UnloadGameCodeDll()
+        {
+            if (EngineAPI.UnloadGameCodeDll() != 0)
+            {
+                Logger.Log(MessageType.Info, "Game code DLL unloaded.");
+            }
+        }
+
+        private static string GetConfigurationName(BuildConfiguration configuration) =>
+            _buildConfigurationNames[(int)configuration];
+
+        private void SetCommands()
+        {
             AddSceneCommand = new RelayCommand<object>(x =>
             {
                 AddScene($"New Scene {_scenes?.Count}");
@@ -128,6 +212,15 @@ namespace IADEditor.GameProject
             UndoCommand = new RelayCommand<object>(x => UndoRedo.Undo(), x => UndoRedo.UndoList.Any());
             RedoCommand = new RelayCommand<object>(x => UndoRedo.Redo(), x => UndoRedo.RedoList.Any());
             SaveCommand = new RelayCommand<object>(x => Save(this));
+            CompileCommand = new RelayCommand<bool>( async x => await BuildGameCodeDll(x),
+                x => !VisualStudio.IsDebugging() && VisualStudio.BuildDone);
+            
+            OnPropertyChanged(nameof(AddSceneCommand));
+            OnPropertyChanged(nameof(RemoveSceneCommand));
+            OnPropertyChanged(nameof(UndoCommand));
+            OnPropertyChanged(nameof(RedoCommand));
+            OnPropertyChanged(nameof(SaveCommand));
+            OnPropertyChanged(nameof(CompileCommand));
         }
     }
 }
