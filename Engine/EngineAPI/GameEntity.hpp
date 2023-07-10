@@ -51,6 +51,7 @@ namespace iad
 			using string_hash = std::hash<std::string>;
 
 			u8 RegisterScript(size_t, script_creator);
+			script_creator get_script_creator(size_t tag);
 
 			template<class ScriptClass>
 			script_ptr CreateScript(game_entity::Entity entity)
@@ -60,15 +61,30 @@ namespace iad
 				// Create an instance of the script and return a pointer to it
 				return std::make_unique<ScriptClass>(entity);
 			}
-		}
 
-		#define REGISTER_SCRIPT(TYPE)																	\
-		class TYPE;																						\
-		namespace {																						\
-			const u8 _RegCharacterScript##TYPE {														\
-				iad::script::detail::RegisterScript(													\
-					iad::script::detail::string_hash()(#TYPE),											\
-					&iad::script::detail::CreateScript<TYPE> ) };										\
+#ifdef USE_WITH_EDITOR
+			u8 add_script_name(const char* name);
+
+			#define REGISTER_SCRIPT(TYPE)																	\
+			namespace																						\
+			{																								\
+				const u8 _RegCharacterScript##TYPE {														\
+					iad::script::detail::RegisterScript(													\
+						iad::script::detail::string_hash()(#TYPE),											\
+						&iad::script::detail::CreateScript<TYPE> ) };										\
+				const u8 _name_##TYPE																		\
+				{ iad::script::detail::add_script_name(#TYPE) };											\
+			}																											
+#else
+			#define REGISTER_SCRIPT(TYPE)																	\
+			namespace																						\
+			{																								\
+				const u8 _RegCharacterScript##TYPE {														\
+					iad::script::detail::RegisterScript(													\
+						iad::script::detail::string_hash()(#TYPE),											\
+						&iad::script::detail::CreateScript<TYPE> ) };										\
+			}
+#endif
 		}
 	}
 }
