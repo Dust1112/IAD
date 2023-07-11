@@ -1,4 +1,5 @@
-﻿using IADEditor.Components;
+﻿using System;
+using IADEditor.Components;
 using IADEditor.DLLWrapper.Structs;
 using System.Runtime.InteropServices;
 
@@ -13,6 +14,13 @@ namespace IADEditor.DLLWrapper
         
         [DllImport(_engineDll)]
         public static extern int UnloadGameCodeDll();
+
+        [DllImport(_engineDll)]
+        public static extern IntPtr GetScriptCreator(string name);
+
+        [DllImport(_engineDll)]
+        [return: MarshalAs(UnmanagedType.SafeArray)]
+        public static extern string[] GetScriptNames();
         
         internal static class EntityAPI
         {
@@ -30,6 +38,10 @@ namespace IADEditor.DLLWrapper
                     descriptor.Transform.position = component.Position;
                     descriptor.Transform.rotation = component.Rotation;
                     descriptor.Transform.scale = component.Scale;
+                }
+                // Script component
+                {
+                    //Script component = gameEntity.GetComponent<Script>();
                 }
 
                 return CreateGameEntity(descriptor);

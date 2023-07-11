@@ -54,6 +54,9 @@ namespace iad::script
             return result;
         }
 
+#ifdef USE_WITH_EDITOR
+        extern "C" __declspec(dllexport)
+#endif
         script_creator get_script_creator(size_t tag)
         {
             auto script = iad::script::Registry().find(tag);
@@ -116,6 +119,7 @@ namespace iad::script
 #ifdef USE_WITH_EDITOR
 #include <atlsafe.h>
 
+extern "C" __declspec(dllexport)
 LPSAFEARRAY get_script_names()
 {
     const u32 size{ (u32)iad::script::script_names().size() };

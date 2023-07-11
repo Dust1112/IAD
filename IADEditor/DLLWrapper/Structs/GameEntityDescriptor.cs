@@ -6,5 +6,6 @@ namespace IADEditor.DLLWrapper.Structs
     public class GameEntityDescriptor
     {
         public TransformComponent Transform = new TransformComponent();
+        public ScriptComponent Script = new ScriptComponent();
     }
 }
