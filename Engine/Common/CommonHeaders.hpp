@@ -1,6 +1,6 @@
 #pragma once
 
-#pragma warning(disable: 4530) // Disable exception worning
+#pragma warning(disable: 4530) // Disable exception warning
 
 // C/C++
 #include <cstdint>

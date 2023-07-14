@@ -21,6 +21,17 @@ namespace iad::script
             return reg;
         }
 
+#ifdef USE_WITH_EDITOR
+        utl::vector<std::string>& script_names()
+        {
+            // NOTE: We put this static variable in a function because of
+            // the initialisation order of static data. This way, we can be certain that the data is initialised
+            // before being accessed.
+            static utl::vector<std::string> names;
+            return names;
+        }
+#endif
+
         bool exists(script_id id)
         {
             assert(id::is_valid(id));
@@ -42,6 +53,25 @@ namespace iad::script
             assert(result);
             return result;
         }
+
+#ifdef USE_WITH_EDITOR
+        extern "C" __declspec(dllexport)
+#endif
+        script_creator get_script_creator(size_t tag)
+        {
+            auto script = iad::script::Registry().find(tag);
+            assert(script != iad::script::Registry().end() && script->first == tag);
+
+            return script->second;
+        }
+
+#ifdef USE_WITH_EDITOR
+        u8 add_script_name(const char* name)
+        {
+            script_names().emplace_back(name);
+            return true;
+        }
+#endif
     }
 
     Component create(init_info info, game_entity::Entity entity)
@@ -85,3 +115,21 @@ namespace iad::script
         id_mapping[id::index(id)] = id::invalid_id;
     }
 }
+
+#ifdef USE_WITH_EDITOR
+#include <atlsafe.h>
+
+extern "C" __declspec(dllexport)
+LPSAFEARRAY get_script_names()
+{
+    const u32 size{ (u32)iad::script::script_names().size() };
+    if (!size) { return nullptr; }
+    CComSafeArray<BSTR> names(size);
+
+    for (u32 i{ 0 }; i < size; ++i)
+    {
+        names.SetAt(i, A2BSTR_EX(iad::script::script_names()[i].c_str()), false);
+    }
+    return names.Detach();
+}
+#endif
