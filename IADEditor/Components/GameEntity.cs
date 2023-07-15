@@ -7,11 +7,13 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
+using IADEditor.Utilities.Enums;
 
 namespace IADEditor.Components
 {
     [DataContract]
     [KnownType(typeof(Transform))]
+    [KnownType(typeof(Script))]
     public class GameEntity : ViewModelBase
     {
         private int _entityId = ID.INVALID_ID;
@@ -99,6 +101,33 @@ namespace IADEditor.Components
         public Component GetComponent(Type type) => Components.FirstOrDefault(c => c.GetType() == type)!;
         public T GetComponent<T>() where T : Component => GetComponent(typeof(T)) as T;
 
+        public bool AddComponent(Component component)
+        {
+            Debug.Assert(component != null);
+            if (Components.All(x => x.GetType() != component.GetType()))
+            {
+                IsActive = false;
+                _components.Add(component);
+                IsActive = true;
+                return true;
+            }
+            Logger.Log(MessageType.Warning, $"Entity {Name} already has a {component.GetType().Name} component");
+            return false;
+        }
+
+        public void RemoveComponent(Component component)
+        {
+            Debug.Assert(component != null);
+            if (component is Transform) { return; } // Transform component can't be removed
+
+            if (_components.Contains(component))
+            {
+                IsActive = false;
+                _components.Remove(component);
+                IsActive = true;
+            }
+        }
+        
         [OnDeserialized]
         private void OnDeserialized(StreamingContext context)
         {

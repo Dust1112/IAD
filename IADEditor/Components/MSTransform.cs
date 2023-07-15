@@ -143,7 +143,7 @@ namespace IADEditor.Components
             Refresh();
         }
 
-        protected override bool UpdateConponents(string propertyName)
+        protected override bool UpdateComponents(string propertyName)
         {
             switch (propertyName)
             {

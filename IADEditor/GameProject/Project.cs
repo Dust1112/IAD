@@ -70,6 +70,21 @@ namespace IADEditor.GameProject
             }
         }
 
+        private string[] _availableScripts;
+
+        public string[] AvailableScripts
+        {
+            get => _availableScripts;
+            set
+            {
+                if (_availableScripts != value)
+                {
+                    _availableScripts = value;
+                    OnPropertyChanged(nameof(AvailableScripts));
+                }
+            }
+        }
+
         public BuildConfiguration StandAloneBuildConfiguration =>
             BuildConfig == 0 ? BuildConfiguration.Debug : BuildConfiguration.Release;
         
@@ -146,6 +161,8 @@ namespace IADEditor.GameProject
                 UnloadGameCodeDll();
                 await Task.Run(() =>
                     VisualStudio.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow));
+                await Task.Delay(1000);
+                
                 if (VisualStudio.BuildSucceeded)
                 {
                     LoadGameCodeDll();
@@ -162,8 +179,11 @@ namespace IADEditor.GameProject
         {
             string configName = GetConfigurationName(DllBuildConfiguration);
             string dll = $@"{Path}x64\{configName}\{Name}.dll";
+
+            AvailableScripts = null;
             if (File.Exists(dll) && EngineAPI.LoadGameCodeDll(dll) != 0)
             {
+                AvailableScripts = EngineAPI.GetScriptNames();
                 Logger.Log(MessageType.Info, "Game code DLL loaded successfully.");
             }
             else
@@ -176,6 +196,7 @@ namespace IADEditor.GameProject
         {
             if (EngineAPI.UnloadGameCodeDll() != 0)
             {
+                AvailableScripts = null;
                 Logger.Log(MessageType.Info, "Game code DLL unloaded.");
             }
         }

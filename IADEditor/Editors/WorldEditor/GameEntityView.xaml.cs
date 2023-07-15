@@ -4,7 +4,11 @@ using IADEditor.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
+using System.Windows.Input;
 
 namespace IADEditor.Editors
 {
@@ -80,6 +84,59 @@ namespace IADEditor.Editors
                 selection?.ForEach(item => item.entity.IsEnabled = item.IsEnabled);
                 (DataContext as MSEntity)?.Refresh();
             });
+        }
+
+        private void OnAddScriptComponent(object sender, RoutedEventArgs e)
+        {
+            AddComponent(ComponentType.Script, (sender as MenuItem).Header.ToString());
+        }
+
+        private void OnAddComponent_Button_PreviewMouse_LBD(object sender, MouseButtonEventArgs e)
+        {
+            ContextMenu menu = FindResource("AddComponentMenu") as ContextMenu;
+            ToggleButton btn = sender as ToggleButton;
+
+            btn.IsChecked = true;
+
+            menu.Placement = PlacementMode.Bottom;
+            menu.PlacementTarget = btn;
+            menu.MinWidth = btn.ActualWidth;
+            menu.IsOpen = true;
+        }
+        
+        private void AddComponent(ComponentType componentType, object data)
+        {
+            var creationFunction = ComponentFactory.GetCreationFunction(componentType);
+            var changedEntities = new List<(GameEntity entity, Component component)>();
+
+            MSEntity vm = DataContext as MSEntity;
+
+            foreach (GameEntity entity in vm.SelectedEntities)
+            {
+                Component component = creationFunction(entity, data);
+                if (entity.AddComponent(component))
+                {
+                    changedEntities.Add((entity, component));
+                }
+            }
+
+            if (changedEntities.Any())
+            {
+                vm.Refresh();
+                Project.UndoRedo.Add(new UndoRedoAction(
+                    () =>
+                    {
+                        changedEntities.ForEach(x => x.entity.RemoveComponent(x.component));
+                        (DataContext as MSEntity).Refresh();
+                    },
+                    () =>
+                    {
+                        changedEntities.ForEach(x => x.entity.AddComponent(x.component));
+                        (DataContext as MSEntity).Refresh();
+                    },
+                    $"Add {componentType} component"
+                    ));
+            }
         }
     }
 }
