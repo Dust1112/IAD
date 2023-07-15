@@ -51,6 +51,9 @@ namespace iad
 			using string_hash = std::hash<std::string>;
 
 			u8 RegisterScript(size_t, script_creator);
+#ifdef USE_WITH_EDITOR
+			extern "C" __declspec(dllexport)
+#endif
 			script_creator get_script_creator(size_t tag);
 
 			template<class ScriptClass>

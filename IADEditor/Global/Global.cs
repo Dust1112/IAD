@@ -14,7 +14,6 @@ namespace {1}
     {{
         // Your code here
     }}
-
 }}
 ";
 

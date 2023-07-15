@@ -18,10 +18,10 @@ namespace IADEditor.Components
             Debug.Assert(msEntity.SelectedEntities.Any() == true);
 
             SelectedComponents = msEntity.SelectedEntities.Select(entity => entity.GetComponent<T>()).ToList();
-            PropertyChanged += (s, e) => { if (enableUpdates) UpdateConponents(e.PropertyName); };
+            PropertyChanged += (s, e) => { if (enableUpdates) UpdateComponents(e.PropertyName); };
         }
 
-        protected abstract bool UpdateConponents(string propertyName);
+        protected abstract bool UpdateComponents(string propertyName);
         protected abstract bool UpdateMSComponent();
 
         public void Refresh()
