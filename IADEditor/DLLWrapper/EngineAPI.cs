@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Linq;
 using IADEditor.Components;
 using IADEditor.DLLWrapper.Structs;
 using System.Runtime.InteropServices;
+using IADEditor.GameProject;
+using IADEditor.Utilities;
+using IADEditor.Utilities.Enums;
 
 namespace IADEditor.DLLWrapper
 {
@@ -41,7 +45,18 @@ namespace IADEditor.DLLWrapper
                 }
                 // Script component
                 {
-                    //Script component = gameEntity.GetComponent<Script>();
+                    Script component = gameEntity.GetComponent<Script>();
+                    if (component != null && Project.Current != null)
+                    {
+                        if (Project.Current.AvailableScripts.Contains(component.Name))
+                        {
+                            descriptor.Script.ScriptCreator = GetScriptCreator(component.Name);
+                        }
+                        else
+                        {
+                            Logger.Log(MessageType.Error, $"Unable to find script with name {component.Name}. Game entity will be created without script component!");
+                        }
+                    }
                 }
 
                 return CreateGameEntity(descriptor);
