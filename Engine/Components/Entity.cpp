@@ -51,7 +51,7 @@ namespace iad::game_entity
         {
             assert(!scripts[index].is_valid());
             scripts[index] = script::create(*info.script, new_entity);
-            assert(!scripts[index].is_valid());
+            assert(scripts[index].is_valid());
         }
 
         return new_entity;

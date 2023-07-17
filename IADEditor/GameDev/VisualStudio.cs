@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Security.AccessControl;
 using IADEditor.GameProject;
 using IADEditor.Utilities;
 using IADEditor.Utilities.Enums;
+using Microsoft.Win32;
 
 namespace IADEditor.GameDev
 {
@@ -170,22 +172,21 @@ namespace IADEditor.GameDev
         public static bool IsDebugging()
         {
             bool result = false;
+            bool tryAgain = true;
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 3 && tryAgain; i++)
             {
                 try
                 {
                     result = _vsInstance != null &&
                              (_vsInstance.Debugger.CurrentProgram != null ||
                               _vsInstance.Debugger.CurrentMode == EnvDTE.dbgDebugMode.dbgRunMode);
+                    tryAgain = false;
                 }
                 catch (Exception e)
                 {
                     Debug.WriteLine(e.Message);
-                    if (!result)
-                    {
-                        System.Threading.Thread.Sleep(1000);
-                    }
+                    System.Threading.Thread.Sleep(1000);
                 }
             }
 
@@ -203,38 +204,40 @@ namespace IADEditor.GameDev
             OpenVisualStudio(project.Solution);
             BuildDone = BuildSucceeded = false;
 
-            try
+            for (int i = 0; i < 3 && !BuildDone; i++)
             {
-                if (!_vsInstance.Solution.IsOpen)
-                {
-                    _vsInstance.Solution.Open(project.Solution);
-                }
-
-                _vsInstance.MainWindow.Visible = showWindow;
-
-                _vsInstance.Events.BuildEvents.OnBuildProjConfigBegin += OnBuildSolutionBegin;
-                _vsInstance.Events.BuildEvents.OnBuildProjConfigDone += OnBuildSolutionDone;
-
                 try
                 {
-                    foreach (string pdbFile in Directory.GetFiles(Path.Combine($"{project.Path}", $@"x64\{buildConfig}"), "*.pdb"))
+                    if (!_vsInstance.Solution.IsOpen)
                     {
-                        File.Delete(pdbFile);
+                        _vsInstance.Solution.Open(project.Solution);
                     }
+
+                    _vsInstance.MainWindow.Visible = showWindow;
+
+                    _vsInstance.Events.BuildEvents.OnBuildProjConfigBegin += OnBuildSolutionBegin;
+                    _vsInstance.Events.BuildEvents.OnBuildProjConfigDone += OnBuildSolutionDone;
+
+                    try
+                    {
+                        foreach (string pdbFile in Directory.GetFiles(Path.Combine($"{project.Path}", $@"x64\{buildConfig}"), "*.pdb"))
+                        {
+                            File.Delete(pdbFile);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e.Message);
+                    }
+
+                    _vsInstance.Solution.SolutionBuild.SolutionConfigurations.Item(buildConfig).Activate();
+                    _vsInstance.ExecuteCommand("Build.BuildSolution");
                 }
                 catch (Exception e)
                 {
                     Debug.WriteLine(e.Message);
+                    Debug.WriteLine($"Attempt {1}: failed to build {project.Name}");
                 }
-
-                _vsInstance.Solution.SolutionBuild.SolutionConfigurations.Item(buildConfig).Activate();
-                _vsInstance.ExecuteCommand("Build.BuildSolution");
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.Message);
-                Debug.WriteLine($"Attempt {1}: failed to build {project.Name}");
-                throw;
             }
         }
 

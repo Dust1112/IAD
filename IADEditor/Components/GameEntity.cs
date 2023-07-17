@@ -111,7 +111,7 @@ namespace IADEditor.Components
                 IsActive = true;
                 return true;
             }
-            Logger.Log(MessageType.Warning, $"Entity {Name} already has a {component.GetType().Name} component");
+            Logger.Log(MessageType.Warning, $"Entity {Name} already has a {component.GetType().Name.ToLower()} component");
             return false;
         }
 
