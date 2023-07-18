@@ -55,7 +55,7 @@ namespace IADEditor.GameProject
             }
         }
         
-        private static readonly string[] _buildConfigurationNames = new[] { "DebugEditor", "ReleaseEditor" };
+        private static readonly string[] _buildConfigurationNames = new[] { "DebugEditor", "ReleaseEditor", "Release", "Debug" };
 
         private int _buildConfig;
         public int BuildConfig
@@ -168,6 +168,10 @@ namespace IADEditor.GameProject
             if (VisualStudio.BuildSucceeded)
             {
                 await Task.Run(() => VisualStudio.Run(this, configName, debug));
+            }
+            else
+            {
+                Logger.Log(MessageType.Warning, "Visual Studio build ongoing, try again later");
             }
         }
 

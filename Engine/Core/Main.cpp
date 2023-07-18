@@ -6,7 +6,34 @@
  * 5) Set C++ language level version (C++ 20) and calling convention (fast)
  */
 
-int main()
+#ifdef _WIN64
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#include <Windows.h>
+#include <crtdbg.h>
+
+#ifndef USE_WITH_EDITOR
+
+extern bool EngineInitialise();
+extern void EngineUpdate();
+extern void EngineShutdown();
+
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-    return 0;
+#if _DEBUG
+ _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+
+ if (EngineInitialise())
+ {
+  
+ }
+
+ return 0;
 }
+#endif
+
+#endif
