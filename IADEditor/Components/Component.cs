@@ -1,6 +1,7 @@
 ﻿using IADEditor.Common;
 using IADEditor.Components.Interfaces;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.Serialization;
 
 namespace IADEditor.Components
@@ -18,5 +19,6 @@ namespace IADEditor.Components
         }
 
         public abstract IMSComponent GetMultiselectionComponent(MSEntity msEntity);
+        public abstract void WriteToBinary(BinaryWriter bw);
     }
 }

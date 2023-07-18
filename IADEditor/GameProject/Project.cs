@@ -165,8 +165,10 @@ namespace IADEditor.GameProject
         {
             string configName = GetConfigurationName(StandAloneBuildConfiguration);
             await Task.Run(() => VisualStudio.BuildSolution(this, configName, debug));
+            await Task.Delay(2000);
             if (VisualStudio.BuildSucceeded)
             {
+                SaveToBinary();
                 await Task.Run(() => VisualStudio.Run(this, configName, debug));
             }
             else
@@ -279,6 +281,27 @@ namespace IADEditor.GameProject
             OnPropertyChanged(nameof(DebugStartCommand));
             OnPropertyChanged(nameof(DebugStartWithoutDebuggingCommand));
             OnPropertyChanged(nameof(DebugStopCommand));
+        }
+        
+        private void SaveToBinary()
+        {
+            string configName = GetConfigurationName(StandAloneBuildConfiguration);
+            string bin = $@"{Path}x64\{configName}\game.bin";
+
+            using (var bw = new BinaryWriter(File.Open(bin, FileMode.Create, FileAccess.Write)))
+            {
+                bw.Write(ActiveScene.GameEntities.Count);
+                foreach (GameEntity entity in ActiveScene.GameEntities)
+                {
+                    bw.Write(0); // TODO: Entity type, reserved for later
+                    bw.Write(entity.Components.Count);
+                    foreach (Component component in entity.Components)
+                    {
+                        bw.Write((int)component.ToEnumType());
+                        component.WriteToBinary(bw);
+                    }
+                }
+            }
         }
     }
 }
