@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.Serialization;
+using System.Text;
 using IADEditor.Components.Interfaces;
 
 namespace IADEditor.Components
@@ -27,6 +29,13 @@ namespace IADEditor.Components
         }
 
         public override IMSComponent GetMultiselectionComponent(MSEntity msEntity) => new MSScript(msEntity);
+        
+        public override void WriteToBinary(BinaryWriter bw)
+        {
+            byte[] nameBytes = Encoding.UTF8.GetBytes(Name);
+            bw.Write(nameBytes.Length);
+            bw.Write(nameBytes);
+        }
     }
 
     sealed class MSScript : MSComponent<Script>
