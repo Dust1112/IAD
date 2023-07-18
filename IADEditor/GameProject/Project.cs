@@ -100,6 +100,9 @@ namespace IADEditor.GameProject
         public ICommand RemoveSceneCommand { get; private set; }
         public ICommand SaveCommand { get; private set; }
         public ICommand CompileCommand { get; private set; }
+        public ICommand DebugStartCommand { get; private set; }
+        public ICommand DebugStartWithoutDebuggingCommand { get; private set; }
+        public ICommand DebugStopCommand { get; private set; }
 
         public Project(string name, string path)
         {
@@ -157,6 +160,18 @@ namespace IADEditor.GameProject
 
             SetCommands();
         }
+
+        private async Task RunGame(bool debug)
+        {
+            string configName = GetConfigurationName(StandAloneBuildConfiguration);
+            await Task.Run(() => VisualStudio.BuildSolution(this, configName, debug));
+            if (VisualStudio.BuildSucceeded)
+            {
+                await Task.Run(() => VisualStudio.Run(this, configName, debug));
+            }
+        }
+
+        private async Task StopGame() => await Task.Run(() => VisualStudio.Stop());
 
         private async Task BuildGameCodeDll(bool showWindow = true)
         {
@@ -245,6 +260,11 @@ namespace IADEditor.GameProject
             SaveCommand = new RelayCommand<object>(x => Save(this));
             CompileCommand = new RelayCommand<bool>( async x => await BuildGameCodeDll(x),
                 x => !VisualStudio.IsDebugging() && VisualStudio.BuildDone);
+            DebugStartCommand = new RelayCommand<object>(async x => await RunGame(true),
+                x => !VisualStudio.IsDebugging() && VisualStudio.BuildDone);
+            DebugStartWithoutDebuggingCommand = new RelayCommand<object>(async x => await RunGame(false),
+                x => !VisualStudio.IsDebugging() && VisualStudio.BuildDone);
+            DebugStopCommand = new RelayCommand<bool>(async x => await StopGame(), x => VisualStudio.IsDebugging());
             
             OnPropertyChanged(nameof(AddSceneCommand));
             OnPropertyChanged(nameof(RemoveSceneCommand));
@@ -252,6 +272,9 @@ namespace IADEditor.GameProject
             OnPropertyChanged(nameof(RedoCommand));
             OnPropertyChanged(nameof(SaveCommand));
             OnPropertyChanged(nameof(CompileCommand));
+            OnPropertyChanged(nameof(DebugStartCommand));
+            OnPropertyChanged(nameof(DebugStartWithoutDebuggingCommand));
+            OnPropertyChanged(nameof(DebugStopCommand));
         }
     }
 }
