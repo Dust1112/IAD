@@ -25,13 +25,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
         bool is_running{ true };
         while (is_running)
         {
-            EngineUpdate();
             while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
                 is_running &= (msg.message != WM_QUIT);
             }
+
+            EngineUpdate();
         }
     }
 

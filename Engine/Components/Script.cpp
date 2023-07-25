@@ -74,7 +74,7 @@ namespace iad::script
 #endif
     }
 
-    Component create(init_info info, game_entity::Entity entity)
+    Component Create(init_info info, game_entity::Entity entity)
     {
         assert(entity.is_valid());
         assert(info.script_creator);
@@ -104,7 +104,7 @@ namespace iad::script
         return Component{ id };
     }
 
-    void remove(Component component)
+    void Remove(Component component)
     {
         assert(component.is_valid() && exists(component.get_id()));
         const script_id id{ component.get_id() };
@@ -113,6 +113,14 @@ namespace iad::script
         utl::erase_unordered(entity_scripts, index);
         id_mapping[id::index(last_id)] = index;
         id_mapping[id::index(id)] = id::invalid_id;
+    }
+
+    void Update(float dt)
+    {
+        for (auto& ptr : entity_scripts)
+        {
+            ptr->Update(dt);
+        }
     }
 }
 
