@@ -1,5 +1,7 @@
 ﻿#include "ContentLoader.hpp"
 
+#include <OleCtl.h>
+
 #include "../Components/Entity.hpp"
 #include "../Components/Transform.hpp"
 #include "../Components/Script.hpp"
@@ -7,6 +9,7 @@
 #if !defined(SHIPPING)
 
 #include <fstream>
+#include <filesystem>
 
 namespace
 {
@@ -77,6 +80,13 @@ namespace
 
 bool iad::content::LoadGame()
 {
+    // Set he working directory to the executable path
+    wchar_t path[MAX_PATH];
+    const u32 length{ GetModuleFileName(0, &path[0], MAX_PATH) };
+    if (!length || GetLastError() == ERROR_INSUFFICIENT_BUFFER) { return false; }
+    std::filesystem::path p{ path };
+    SetCurrentDirectory(p.parent_path().wstring().c_str());
+    
     // Read game.bin and create the entities
     std::ifstream game("game.bin", std::ios::in | std::ios::binary);
     utl::vector<u8> buffer(std::istreambuf_iterator<char>(game), {});
@@ -111,6 +121,7 @@ bool iad::content::LoadGame()
     }
 
     assert(at == buffer.data() + buffer.size());
+    return true;
 }
 
 void iad::content::UnloadGame()

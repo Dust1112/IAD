@@ -50,7 +50,7 @@ namespace iad::game_entity
         if (info.script && info.script->script_creator)
         {
             assert(!scripts[index].is_valid());
-            scripts[index] = script::create(*info.script, new_entity);
+            scripts[index] = script::Create(*info.script, new_entity);
             assert(scripts[index].is_valid());
         }
 
@@ -64,7 +64,7 @@ namespace iad::game_entity
 
         if (scripts[index].is_valid())
         {
-            script::remove(scripts[index]);
+            script::Remove(scripts[index]);
             scripts[index] = {};
         }
 

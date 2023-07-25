@@ -9,6 +9,7 @@ namespace iad::script
         detail::script_creator script_creator;
     };
 
-    Component create(init_info info, game_entity::Entity entity);
-    void remove(Component component);
+    Component Create(init_info info, game_entity::Entity entity);
+    void Remove(Component component);
+    void Update(float dt);
 }
