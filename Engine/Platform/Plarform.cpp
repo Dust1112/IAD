@@ -16,6 +16,42 @@ namespace iad::platform
             bool is_fullscreen{ false };
             bool is_closed{ false };
         };
+
+        utl::vector<WindowInfo> windows;
+
+        // TODO: This will be replaced later
+        utl::vector<u32> available_slots;
+        u32 AddToWindows(WindowInfo info)
+        {
+            u32 id{ u32_invalid_id };
+            if (available_slots.empty())
+            {
+                id = (u32)windows.size();
+                windows.emplace_back(info);
+            }
+            else
+            {
+                id = available_slots.back();
+                available_slots.pop_back();
+                assert(id != u32_invalid_id);
+                windows[id] = info;
+            }
+
+            return id;
+        }
+
+        void RemoveFromWindows(u32 id)
+        {
+            assert(id < windows.size());
+            available_slots.emplace_back(id);
+        }
+
+        WindowInfo& GetFromId(window_id id)
+        {
+            assert(id < windows.size());
+            assert(windows[id].hwnd);
+            return windows[id];
+        }
         
         LRESULT CALLBACK InternalWindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         {
@@ -23,6 +59,72 @@ namespace iad::platform
             return long_ptr
                 ? ((window_proc)long_ptr)(hwnd, msg, wparam, lparam)
                 : DefWindowProc(hwnd, msg, wparam, lparam);
+        }
+
+        void ResizeWindow(const WindowInfo& info, const RECT& area)
+        {
+            // Adjust the window size for the correct device size
+            RECT window_rect{ area };
+            AdjustWindowRect(&window_rect, info.style, FALSE);
+
+            const u32 width{ window_rect.right - window_rect.left };
+            const u32 height{ window_rect.bottom - window_rect.top };
+
+            MoveWindow(info.hwnd, info.top_left.x, info.top_left.y, width, height, true);
+        }
+
+        void SetWindowFullScreen(window_id id, bool isFullscreen)
+        {
+            WindowInfo& info{ GetFromId(id) };
+            if (info.is_fullscreen != isFullscreen)
+            {
+                info.is_fullscreen = isFullscreen;
+
+                if (isFullscreen)
+                {
+                    // Store the current window dimensions so they can be restored
+                    // when switching out of fullscreen state
+                    GetClientRect(info.hwnd, &info.client_area);
+                    RECT rect;
+                    GetWindowRect(info.hwnd, &rect);
+                    info.top_left.x = rect.left;
+                    info.top_left.y = rect.top;
+                    info.style = 0;
+                    SetWindowLongPtr(info.hwnd, GWL_STYLE, info.style);
+
+                    ShowWindow(info.hwnd, SW_MAXIMIZE);
+                }
+                else
+                {
+                    info.style = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
+                    SetWindowLongPtr(info.hwnd, GWL_STYLE, info.style);
+                    ResizeWindow(info, info.client_area);
+                    ShowWindow(info.hwnd, SW_SHOWNORMAL);
+                }
+            }
+        }
+
+        bool IsWindowFullscreen(window_id id)
+        {
+            return GetFromId(id).is_fullscreen;
+        }
+
+        window_handle GetWindowHandle(window_id id)
+        {
+            return GetFromId(id).hwnd;
+        }
+
+        void SetWindowCaption(window_id id, const wchar_t* caption)
+        {
+            WindowInfo& info{ GetFromId(id) };
+            SetWindowText(info.hwnd, caption);
+        }
+        
+        math::u32v4 GetWindowSize(window_id id)
+        {
+            WindowInfo& info { GetFromId(id) };
+            RECT area{ info.is_fullscreen ? info.fullscreen_area : info.client_area };
+            return { (u32)area.left, (u32)area.top, (u32)area.right, (u32)area.right };
         }
     }
 
@@ -79,11 +181,81 @@ namespace iad::platform
 
         if (info.hwnd)
         {
-            
+            window_id id{ AddToWindows(info) };
+
+            // Set in the "extra" bytes of the pointer to the windows callback function
+            // which handles messaged for the window
+            SetWindowLongPtr(info.hwnd, 0, (LONG_PTR)callback);
+            assert(GetLastError() == 0);
+
+            ShowWindow(info.hwnd, SW_SHOWNORMAL);
+            UpdateWindow(info.hwnd);
+
+            return Window{ id };
         }
         return{};
+    }
+
+    void RemoveWindow(window_id id)
+    {
+        WindowInfo& info{ GetFromId(id) };
+        DestroyWindow(info.hwnd);
+        RemoveFromWindows(id);
     }
 #elif
 #error "Must implement at least one platform."
 #endif
+
+    void Window::SetFullscreen(bool isFullscreen) const
+    {
+        assert(IsValid());
+        SetWindowFullScreen(_id, isFullscreen);
+    }
+
+    bool Window::IsFullscreen() const
+    {
+        assert(IsValid());
+        return IsWindowFullscreen(_id);
+    }
+
+    void* Window::Handle() const
+    {
+        assert(IsValid());
+        return GetWindowHandle(_id);
+    }
+
+    void Window::SetCaption(const wchar_t* caption) const
+    {
+        assert(IsValid());
+        SetWindowCaption(_id, caption);
+    }
+
+
+    const math::u32v4 Window::Size() const
+    {
+        assert(IsValid());
+        return GetWindowSize(_id);
+    }
+
+
+    void Window::Resize(u32 width, u32 height) const
+    {
+        
+    }
+
+    const u32 Window::Width() const
+    {
+        
+    }
+
+    const u32 Window::Height() const
+    {
+        
+    }
+
+    bool Window::IsClosed() const
+    {
+        
+    }
+
 }

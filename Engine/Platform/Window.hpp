@@ -17,7 +17,7 @@ namespace iad::platform
         void SetFullscreen(bool isFullscreen) const;
         bool IsFullscreen() const;
         void* Handle() const;
-        void SetCaption(const char* caption) const;
+        void SetCaption(const wchar_t* caption) const;
         const math::u32v4 Size() const;
         void Resize(u32 width, u32 height) const;
         const u32 Width() const;
