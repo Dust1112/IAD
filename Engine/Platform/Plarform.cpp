@@ -52,9 +52,24 @@ namespace iad::platform
             assert(windows[id].hwnd);
             return windows[id];
         }
+
+        WindowInfo& GetFromHandle(window_handle handle)
+        {
+            const window_id id{ (id::id_type)GetWindowLongPtr(handle, GWLP_USERDATA) };
+
+            return GetFromId(id);
+        }
         
         LRESULT CALLBACK InternalWindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         {
+            WindowInfo* info{ nullptr };
+            switch (msg)
+            {
+            case WM_DESTROY:
+                GetFromHandle(hwnd).is_closed;
+                break;
+            }
+            
             LONG_PTR long_ptr{ GetWindowLongPtr(hwnd, 0) };
             return long_ptr
                 ? ((window_proc)long_ptr)(hwnd, msg, wparam, lparam)
@@ -71,6 +86,19 @@ namespace iad::platform
             const u32 height{ window_rect.bottom - window_rect.top };
 
             MoveWindow(info.hwnd, info.top_left.x, info.top_left.y, width, height, true);
+        }
+
+        void ResizeWindow(window_id id, u32 width, u32 height)
+        {
+            WindowInfo& info{ GetFromId(id) };
+
+            // NOTE: We also resize while in fullscreen mode to support the case when
+            // when the user changes the screen resolution.
+            RECT& area{ info.is_fullscreen ? info.fullscreen_area : info.client_area };
+            area.bottom = area.top + height;
+            area.right = area.left + width;
+            
+            ResizeWindow(info, area);
         }
 
         void SetWindowFullScreen(window_id id, bool isFullscreen)
@@ -125,6 +153,11 @@ namespace iad::platform
             WindowInfo& info { GetFromId(id) };
             RECT area{ info.is_fullscreen ? info.fullscreen_area : info.client_area };
             return { (u32)area.left, (u32)area.top, (u32)area.right, (u32)area.right };
+        }
+
+        bool IsWindowClosed(window_id id)
+        {
+            return GetFromId(id).is_closed;
         }
     }
 
@@ -182,6 +215,7 @@ namespace iad::platform
         if (info.hwnd)
         {
             window_id id{ AddToWindows(info) };
+            SetWindowLongPtr(info.hwnd, GWLP_USERDATA, (LONG_PTR)id);
 
             // Set in the "extra" bytes of the pointer to the windows callback function
             // which handles messaged for the window
@@ -240,22 +274,28 @@ namespace iad::platform
 
     void Window::Resize(u32 width, u32 height) const
     {
-        
+        assert(IsValid());
+        ResizeWindow(_id, width, height);;
     }
 
     const u32 Window::Width() const
     {
-        
+        math::u32v4 s{ Size() };
+
+        return s.z - s.x;
     }
 
     const u32 Window::Height() const
     {
-        
+        math::u32v4 s{ Size() };
+
+        return s.w - s.y;
     }
 
     bool Window::IsClosed() const
     {
-        
+        assert(IsValid());
+        return IsWindowClosed(_id);
     }
 
 }
