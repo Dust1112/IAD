@@ -12,7 +12,7 @@ public:
 	// Inherited via Test
 	bool initialize() override;
 	void run() override;
-	void shutown() override;
+	void shutdown() override;
 
 private:
 	void create_random();

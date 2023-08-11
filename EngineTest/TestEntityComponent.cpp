@@ -23,7 +23,7 @@ void EngineTest::run()
     } while (getchar() != 'q');
 }
 
-void EngineTest::shutown()
+void EngineTest::shutdown()
 {
 }
 

@@ -1,0 +1,16 @@
+﻿#pragma once
+
+#include "Test.hpp"
+#include "../Engine/Platform/Platform.hpp"
+
+class TestWindow : Test
+{
+public:
+    // Inherited via Test
+    bool initialize() override;
+    void run() override;
+    void shutdown() override;
+
+private:
+    iad::platform::Window _windows[4];
+};
