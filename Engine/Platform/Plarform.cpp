@@ -66,8 +66,31 @@ namespace iad::platform
             switch (msg)
             {
             case WM_DESTROY:
-                GetFromHandle(hwnd).is_closed;
+                GetFromHandle(hwnd).is_closed = true;
                 break;
+            case WM_EXITSIZEMOVE:
+                info = &GetFromHandle(hwnd);
+                break;
+            case WM_SIZE:
+                if (wparam == SIZE_MAXIMIZED)
+                {
+                    info = &GetFromHandle(hwnd);
+                }
+                break;
+            case WM_SYSCOMMAND:
+                if (wparam == SC_RESTORE)
+                {
+                    info = &GetFromHandle(hwnd);
+                }
+                break;
+            default:
+                break;       
+            }
+
+            if (info)
+            {
+                assert(info->hwnd);
+                GetClientRect(info->hwnd, info->is_fullscreen ? &info->fullscreen_area : &info->client_area);
             }
             
             LONG_PTR long_ptr{ GetWindowLongPtr(hwnd, 0) };
