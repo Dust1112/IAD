@@ -66,8 +66,31 @@ namespace iad::platform
             switch (msg)
             {
             case WM_DESTROY:
-                GetFromHandle(hwnd).is_closed;
+                GetFromHandle(hwnd).is_closed = true;
                 break;
+            case WM_EXITSIZEMOVE:
+                info = &GetFromHandle(hwnd);
+                break;
+            case WM_SIZE:
+                if (wparam == SIZE_MAXIMIZED)
+                {
+                    info = &GetFromHandle(hwnd);
+                }
+                break;
+            case WM_SYSCOMMAND:
+                if (wparam == SC_RESTORE)
+                {
+                    info = &GetFromHandle(hwnd);
+                }
+                break;
+            default:
+                break;       
+            }
+
+            if (info)
+            {
+                assert(info->hwnd);
+                GetClientRect(info->hwnd, info->is_fullscreen ? &info->fullscreen_area : &info->client_area);
             }
             
             LONG_PTR long_ptr{ GetWindowLongPtr(hwnd, 0) };
@@ -82,8 +105,8 @@ namespace iad::platform
             RECT window_rect{ area };
             AdjustWindowRect(&window_rect, info.style, FALSE);
 
-            const u32 width{ window_rect.right - window_rect.left };
-            const u32 height{ window_rect.bottom - window_rect.top };
+            const u32 width{ static_cast<u32>(window_rect.right) - static_cast<u32>(window_rect.left) };
+            const u32 height{ static_cast<u32>(window_rect.bottom) - static_cast<u32>(window_rect.top) };
 
             MoveWindow(info.hwnd, info.top_left.x, info.top_left.y, width, height, true);
         }
@@ -214,6 +237,7 @@ namespace iad::platform
 
         if (info.hwnd)
         {
+            SetLastError(0);
             window_id id{ AddToWindows(info) };
             SetWindowLongPtr(info.hwnd, GWLP_USERDATA, (LONG_PTR)id);
 

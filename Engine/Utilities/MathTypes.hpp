@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Common/CommonHeaders.hpp"
+#include "../Common/PrimitiveTypes.hpp"
 
 namespace iad::math 
 {
