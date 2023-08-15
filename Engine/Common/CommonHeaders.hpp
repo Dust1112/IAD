@@ -18,3 +18,4 @@
 #include "../Utilities/MathTypes.hpp"
 #include "PrimitiveTypes.hpp"
 #include "Id.hpp"
+#include "Macros.hpp"
