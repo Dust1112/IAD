@@ -165,7 +165,7 @@ namespace IADEditor.GameProject
         {
             string configName = GetConfigurationName(StandAloneBuildConfiguration);
             await Task.Run(() => VisualStudio.BuildSolution(this, configName, debug));
-            //await Task.Delay(2000);
+            await Task.Delay(2000);
             if (VisualStudio.BuildSucceeded)
             {
                 SaveToBinary();
