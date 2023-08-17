@@ -211,6 +211,7 @@ namespace iad::platform
         WindowInfo info{};
         info.client_area.right = (init_info && init_info->width) ? info.client_area.left + init_info->width : info.client_area.right;
         info.client_area.bottom = (init_info && init_info->height) ? info.client_area.top + init_info->height : info.client_area.bottom;
+        info.style |= parent ? WS_CHILD : WS_OVERLAPPEDWINDOW;
         
         RECT rect{ info.client_area };
 
@@ -222,8 +223,7 @@ namespace iad::platform
         const s32 top{ init_info ? init_info->top : info.top_left.y };
         const s32 width{ rect.right - rect.left };
         const s32 height{ rect.bottom - rect.top };
-
-        info.style |= parent ? WS_CHILD : WS_OVERLAPPEDWINDOW;
+        
         // Create an instance of the window class
         info.hwnd = CreateWindowEx(
             0,
