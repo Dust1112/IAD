@@ -25,6 +25,15 @@ namespace IADEditor.DLLWrapper
         [DllImport(_engineDll)]
         [return: MarshalAs(UnmanagedType.SafeArray)]
         public static extern string[] GetScriptNames();
+
+        [DllImport(_engineDll)]
+        public static extern int CreateRenderSurface(IntPtr host, int width, int height);
+        
+        [DllImport(_engineDll)]
+        public static extern void RemoveRenderSurface(int surfaceId);
+        
+        [DllImport(_engineDll)]
+        public static extern IntPtr GetWindowHandle(int windowId);
         
         internal static class EntityAPI
         {
