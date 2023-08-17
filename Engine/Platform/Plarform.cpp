@@ -140,14 +140,12 @@ namespace iad::platform
                     GetWindowRect(info.hwnd, &rect);
                     info.top_left.x = rect.left;
                     info.top_left.y = rect.top;
-                    info.style = 0;
-                    SetWindowLongPtr(info.hwnd, GWL_STYLE, info.style);
+                    SetWindowLongPtr(info.hwnd, GWL_STYLE, 0);
 
                     ShowWindow(info.hwnd, SW_MAXIMIZE);
                 }
                 else
                 {
-                    info.style = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
                     SetWindowLongPtr(info.hwnd, GWL_STYLE, info.style);
                     ResizeWindow(info, info.client_area);
                     ShowWindow(info.hwnd, SW_SHOWNORMAL);
@@ -213,7 +211,7 @@ namespace iad::platform
         info.client_area.bottom = (init_info && init_info->height) ? info.client_area.top + init_info->height : info.client_area.bottom;
         info.style |= parent ? WS_CHILD : WS_OVERLAPPEDWINDOW;
         
-        RECT rect{ info.client_area };
+        RECT& rect{ info.client_area };
 
         // Adjust the window size for the correct device size
         AdjustWindowRect(&rect, info.style, FALSE);
