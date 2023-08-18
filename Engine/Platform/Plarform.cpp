@@ -197,7 +197,7 @@ namespace iad::platform
         wc.cbWndExtra = callback ? sizeof(callback) : 0;
         wc.hInstance = 0;
         wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-        wc.hCursor = LoadIcon(NULL, IDC_ARROW);
+        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
         wc.hbrBackground = CreateSolidBrush(RGB(26, 48, 76));
         wc.lpszMenuName = NULL;
         wc.lpszClassName = L"IADWindow";
@@ -244,7 +244,7 @@ namespace iad::platform
 
             // Set in the "extra" bytes of the pointer to the windows callback function
             // which handles messaged for the window
-            SetWindowLongPtr(info.hwnd, 0, (LONG_PTR)callback);
+            if (callback) { SetWindowLongPtr(info.hwnd, 0, (LONG_PTR)callback); }
             assert(GetLastError() == 0);
 
             ShowWindow(info.hwnd, SW_SHOWNORMAL);
