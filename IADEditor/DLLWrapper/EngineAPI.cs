@@ -33,6 +33,9 @@ namespace IADEditor.DLLWrapper
         public static extern void RemoveRenderSurface(int surfaceId);
         
         [DllImport(_engineDll)]
+        public static extern void ResizeRenderSurface(int surfaceId);
+        
+        [DllImport(_engineDll)]
         public static extern IntPtr GetWindowHandle(int windowId);
         
         internal static class EntityAPI
