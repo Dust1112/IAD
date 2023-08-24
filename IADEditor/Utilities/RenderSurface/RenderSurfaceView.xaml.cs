@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -10,6 +11,8 @@ public partial class RenderSurfaceView : UserControl, IDisposable
 {
     private RenderSurfaceHost _host = null;
     private bool _disposedValue;
+    private bool _canResize = true;
+    private bool _moved = false;
     
     public RenderSurfaceView()
     {
@@ -24,6 +27,35 @@ public partial class RenderSurfaceView : UserControl, IDisposable
         _host = new RenderSurfaceHost(ActualWidth, ActualHeight);
         _host.MessageHook += new HwndSourceHook(HostMsgFilter);
         Content = _host;
+
+        var window = this.FindVisualParent<Window>();
+        Debug.Assert(window != null);
+        var helper = new WindowInteropHelper(window);
+
+        if (helper.Handle != null)
+        {
+            HwndSource.FromHwnd(helper.Handle)?.AddHook(HwndMessageHook);
+        }
+    }
+
+    private IntPtr HwndMessageHook(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
+    {
+        switch ((Win32Msg)msg)
+        {
+            case Win32Msg.WM_ENTERSIZEMOVE:
+                _moved = true;
+                break;
+            case Win32Msg.WM_EXITSIZEMOVE:
+                _canResize = true;
+                if (!_moved) { _host.Resize(); }
+                break;
+            case Win32Msg.WM_SIZING:
+                _moved = false;
+                _canResize = false;
+                break;
+        }
+        
+        return IntPtr.Zero;
     }
 
     private IntPtr HostMsgFilter(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
@@ -31,7 +63,7 @@ public partial class RenderSurfaceView : UserControl, IDisposable
         switch ((Win32Msg)msg)
         {
             case Win32Msg.WM_SIZE:
-                _host.Resize();
+                if (_canResize) { _host.Resize(); }
                 break;
             case Win32Msg.WM_ENTERSIZEMOVE:
                 throw new Exception();

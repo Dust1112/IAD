@@ -115,13 +115,20 @@ namespace iad::platform
         {
             WindowInfo& info{ GetFromId(id) };
 
-            // NOTE: We also resize while in fullscreen mode to support the case when
-            // when the user changes the screen resolution.
-            RECT& area{ info.is_fullscreen ? info.fullscreen_area : info.client_area };
-            area.bottom = area.top + height;
-            area.right = area.left + width;
+            if (info.style & WS_CHILD)
+            {
+                GetClientRect(info.hwnd, &info.client_area);
+            }
+            else
+            {
+                // NOTE: We also resize while in fullscreen mode to support the case when
+                // when the user changes the screen resolution.
+                RECT& area{ info.is_fullscreen ? info.fullscreen_area : info.client_area };
+                area.bottom = area.top + height;
+                area.right = area.left + width;
             
-            ResizeWindow(info, area);
+                ResizeWindow(info, area);
+            }
         }
 
         void SetWindowFullScreen(window_id id, bool isFullscreen)

@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Windows.Input;
 using System.Windows.Interop;
 using IADEditor.DLLWrapper;
-using IADEditor.Utilities.Enums;
 
 namespace IADEditor.Utilities;
 
@@ -30,7 +29,7 @@ public class RenderSurfaceHost : HwndHost
         e.RepeatEvent = Mouse.LeftButton == MouseButtonState.Pressed;
         if (!e.RepeatEvent)
         {
-            Logger.Log(MessageType.Info, "Resized");
+            EngineAPI.ResizeRenderSurface(SurfaceId);
         }
     }
 
