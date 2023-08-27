@@ -14,6 +14,7 @@
 #endif
 
 // Common Headers
+#include "../Utilities/Math.hpp"
 #include "../Utilities/Utilities.h"
 #include "../Utilities/MathTypes.hpp"
 #include "PrimitiveTypes.hpp"
