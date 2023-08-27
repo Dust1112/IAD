@@ -11,9 +11,24 @@
     <ClInclude Include="EngineAPI\GameEntity.hpp" />
     <ClInclude Include="EngineAPI\TransformComoponent.hpp" />
     <ClInclude Include="Utilities\MathTypes.hpp" />
+    <ClInclude Include="Common\Macros.hpp" />
+    <ClInclude Include="Components\Script.hpp" />
+    <ClInclude Include="Content\ContentLoader.hpp" />
+    <ClInclude Include="EngineAPI\ScriptComponent.hpp" />
+    <ClInclude Include="Graphics\Renderer.hpp" />
+    <ClInclude Include="Platform\Platform.hpp" />
+    <ClInclude Include="Platform\PlatformTypes.hpp" />
+    <ClInclude Include="Platform\Window.hpp" />
+    <ClInclude Include="Utilities\Math.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Components\Entity.cpp" />
     <ClCompile Include="Components\Transform.cpp" />
+    <ClCompile Include="Components\Script.cpp" />
+    <ClCompile Include="Content\ContentLoader.cpp" />
+    <ClCompile Include="Core\Engine.cpp" />
+    <ClCompile Include="Core\Main.cpp" />
+    <ClCompile Include="Graphics\Renderer.cpp" />
+    <ClCompile Include="Platform\Plarform.cpp" />
   </ItemGroup>
 </Project>

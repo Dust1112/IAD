@@ -95,6 +95,7 @@
     <ClCompile Include="Mesh\PrimitiveMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Mesh\Geometry\Axis.hpp" />
     <ClInclude Include="Mesh\Geometry\Geometry.hpp" />
     <ClInclude Include="Mesh\Geometry\GeometryImportSettings.hpp" />
     <ClInclude Include="Mesh\Geometry\LodGroup.hpp" />
