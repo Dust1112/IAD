@@ -2,6 +2,7 @@
 
 #include "../../ToolsCommon.hpp"
 #include "GeometryImportSettings.hpp"
+#include "Scene.hpp"
 
 namespace iad::tools
 {
@@ -9,6 +10,9 @@ namespace iad::tools
 	{
 		u8* buffer;
 		u32 buffer_size;
-		geometry_import_settings settings;
+		GeometryImportSettings settings;
 	};
+
+	void ProcessScene(Scene& scene, const GeometryImportSettings settings);
+	void PackData(const Scene& scene, SceneData& data);
 }

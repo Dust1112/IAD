@@ -2,7 +2,7 @@
 
 namespace iad::tools
 {
-	struct geometry_import_settings
+	struct GeometryImportSettings
 	{
 		f32 smoothing_angle;
 		u8 calculate_normals;

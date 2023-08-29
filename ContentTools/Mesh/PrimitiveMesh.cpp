@@ -2,7 +2,6 @@
 
 #include "PrimitiveInitInfo.hpp"
 
-#include "Geometry/Scene.hpp"
 #include "Geometry/Geometry.hpp"
 #include "Geometry/Axis.hpp"
 
@@ -146,7 +145,7 @@ namespace iad::tools
         creators[info->type](scene, *info);
 
         data->settings.calculate_normals = 1;
-        //ProcessScene(scene, data->settings);
-        //PackData(scene, *data);
+        ProcessScene(scene, data->settings);
+        PackData(scene, *data);
     }
 }
