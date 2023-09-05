@@ -59,5 +59,8 @@
     <ClInclude Include="Mesh\Geometry\Vertex.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh\Geometry\VertexStatic.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

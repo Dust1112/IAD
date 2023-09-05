@@ -103,6 +103,7 @@
     <ClInclude Include="Mesh\Geometry\Mesh.hpp" />
     <ClInclude Include="Mesh\Geometry\Scene.hpp" />
     <ClInclude Include="Mesh\Geometry\Vertex.hpp" />
+    <ClInclude Include="Mesh\Geometry\VertexStatic.hpp" />
     <ClInclude Include="Mesh\PrimitiveMesh.hpp" />
     <ClInclude Include="Mesh\PrimitiveMeshType.hpp" />
     <ClInclude Include="ToolsCommon.hpp" />

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../ToolsCommon.hpp"
 #include "Vertex.hpp"
+#include "VertexStatic.hpp"
 
 namespace iad::tools
 {
@@ -18,5 +18,11 @@ namespace iad::tools
 		// Intermediate data
 		utl::vector<Vertex> vertices;
 		utl::vector<u32> indices;
+
+		// Output data
+		std::string name;
+		utl::vector<packed_vertex::VertexStatic> packed_vertices_static;
+		f32 lod_threshold{ -1.f };
+		u32 lod_id{ u32_invalid_id };
 	};
 }
