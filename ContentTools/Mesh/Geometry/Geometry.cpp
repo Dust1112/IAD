@@ -90,6 +90,80 @@ namespace iad::tools
 			}
 		}
 
+		void ProcessUvs(Mesh& mesh)
+		{
+			utl::vector<Vertex> old_vertices;
+			old_vertices.swap(mesh.vertices);
+			utl::vector<u32> old_indices(mesh.indices.size());
+			old_indices.swap(mesh.indices);
+
+			const u32 num_vertices{ (u32)old_vertices.size() };
+			const u32 num_indices{ (u32)old_indices.size() };
+			assert(num_vertices && num_indices);
+
+			utl::vector<utl::vector<u32>> index_ref(num_vertices);
+			for (u32 i{ 0 }; i < num_indices; ++i)
+			{
+				index_ref[old_indices[i]].emplace_back(i);
+			}
+
+			for (u32 i{ 0 }; i < num_indices; ++i)
+			{
+				auto& refs{ index_ref[i] };
+				u32 num_refs{ (u32)refs.size() };
+				for (u32 j{ 0 }; j < num_refs; ++j)
+				{
+					mesh.indices[refs[j]] = (u32)mesh.vertices.size();
+					Vertex& vert{ old_vertices[old_indices[refs[j]]] };
+					vert.uv = mesh.uv_sets[0][refs[j]];
+					mesh.vertices.emplace_back(vert);
+
+					for (u32 k{ j + 1 }; k < num_refs; ++k)
+					{
+						math::v2& uv1{ mesh.uv_sets[0][refs[k]] };
+						if (XMScalarNearEqual(vert.uv.x, uv1.x, epsilon) &&
+							XMScalarNearEqual(vert.uv.y, uv1.y, epsilon))
+						{
+							mesh.indices[refs[k]] = mesh.indices[refs[j]];
+							refs.erase(refs.begin() + k);
+							--num_refs;
+							--k;
+						}
+					}
+				}
+			}
+		}
+
+		void PackVerticesStatic(Mesh& mesh)
+		{
+			const u32 num_vertices{ (u32)mesh.vertices.size() };
+			assert(num_vertices);
+
+			mesh.packed_vertices_static.reserve(num_vertices);
+
+			for (u32 i{ 0 }; i < num_vertices; ++i)
+			{
+				Vertex& vert{ mesh.vertices[i] };
+				const u8 signs{ (u32)((vert.normal.z > 0.f) << 1) };
+				const u16 normal_x{ (u16)PackFloat<16>(vert.normal.x, -1.f, 1.f) };
+				const u16 normal_y{ (u16)PackFloat<16>(vert.normal.y, -1.f, 1.f) };
+
+				// TODO: pack tangents in sign and in x/y components
+
+				mesh.packed_vertices_static.emplace_back(
+					packed_vertex::VertexStatic
+					{
+						vert.position,
+						{ 0, 0, 0 },
+						signs,
+						{ normal_x, normal_y },
+						{},
+						vert.uv
+					}
+				);
+			}
+		}
+
 		void ProcessVertices(Mesh& mesh, const GeometryImportSettings settings)
 		{
 			assert((mesh.raw_indices.size() % 3) == 0);
