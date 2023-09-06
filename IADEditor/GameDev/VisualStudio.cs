@@ -11,6 +11,8 @@ using IADEditor.Utilities.Enums;
 
 namespace IADEditor.GameDev
 {
+    public delegate void BuildSolutionDoneEventHandler(bool success);
+
     public static class VisualStudio
     {
         private static EnvDTE80.DTE2 _vsInstance = null;
@@ -23,6 +25,8 @@ namespace IADEditor.GameDev
 
         [DllImport("ole32.dll")]
         private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
+
+        public static event BuildSolutionDoneEventHandler BuildSolutionDone = delegate { }; // Initialize with an empty delegate
 
         public static void OpenVisualStudio(string solutionPath)
         {
@@ -254,6 +258,9 @@ namespace IADEditor.GameDev
 
             BuildDone = true;
             BuildSucceeded = success;
+
+            // Raise the event
+            BuildSolutionDone?.Invoke(success);
         }
 
         private static void OnBuildSolutionBegin(string project, string projectConfig, string platform, string solutionConfig)

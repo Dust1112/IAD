@@ -165,8 +165,11 @@ namespace IADEditor.GameProject
         {
             string configName = GetConfigurationName(StandAloneBuildConfiguration);
             await Task.Run(() => VisualStudio.BuildSolution(this, configName, debug));
-            await Task.Delay(2000);
-            if (VisualStudio.BuildSucceeded)
+
+            Logger.Log(MessageType.Info, "Running the game in 5s...");
+            await Task.Delay(5000);
+
+            if (VisualStudio.BuildDone && VisualStudio.BuildSucceeded)
             {
                 SaveToBinary();
                 await Task.Run(() => VisualStudio.Run(this, configName, debug));
@@ -184,14 +187,11 @@ namespace IADEditor.GameProject
             try
             {
                 UnloadGameCodeDll();
+
+                VisualStudio.BuildSolutionDone += LoadGameCodeDllEvent;
+
                 await Task.Run(() =>
                     VisualStudio.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow));
-                await Task.Delay(1000);
-                
-                if (VisualStudio.BuildSucceeded)
-                {
-                    LoadGameCodeDll();
-                }
             }
             catch (Exception e)
             {
@@ -302,6 +302,16 @@ namespace IADEditor.GameProject
                     }
                 }
             }
+        }
+
+        private void LoadGameCodeDllEvent(bool success)
+        {
+            if (success)
+            {
+                LoadGameCodeDll();
+            }
+
+            VisualStudio.BuildSolutionDone -= LoadGameCodeDllEvent;
         }
     }
 }
