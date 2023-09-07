@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Threading;
 using System.Threading.Tasks;
 using IADEditor.GameProject;
 using IADEditor.Utilities;
@@ -11,8 +12,6 @@ using IADEditor.Utilities.Enums;
 
 namespace IADEditor.GameDev
 {
-    public delegate void BuildSolutionDoneEventHandler(bool success);
-
     public static class VisualStudio
     {
         private static EnvDTE80.DTE2 _vsInstance = null;
@@ -25,8 +24,6 @@ namespace IADEditor.GameDev
 
         [DllImport("ole32.dll")]
         private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
-
-        public static event BuildSolutionDoneEventHandler BuildSolutionDone = delegate { }; // Initialize with an empty delegate
 
         public static void OpenVisualStudio(string solutionPath)
         {
@@ -206,9 +203,9 @@ namespace IADEditor.GameDev
 
             OpenVisualStudio(project.Solution);
             BuildDone = BuildSucceeded = false;
-            
-            // TODO This had a for loop for retrying, but was removed as it was deemed unnecessary.
-            // Put the for loop back in the future if needed: ( for(int i = 0; i < 3 && !BuildDone; i++) )
+
+            ManualResetEvent buildCompleteEvent = new ManualResetEvent(false);
+
             try
             {
                 if (!_vsInstance.Solution.IsOpen)
@@ -219,7 +216,11 @@ namespace IADEditor.GameDev
                 _vsInstance.MainWindow.Visible = showWindow;
                 
                 _vsInstance.Events.BuildEvents.OnBuildProjConfigBegin += OnBuildSolutionBegin;
-                _vsInstance.Events.BuildEvents.OnBuildProjConfigDone += OnBuildSolutionDone;
+                _vsInstance.Events.BuildEvents.OnBuildProjConfigDone += (projectName, projectConfig, platform, solutionConfig, success) =>
+                {
+                    OnBuildSolutionDone(projectName, projectConfig, platform, solutionConfig, success);
+                    buildCompleteEvent.Set(); // Signal that the build is complete
+                };
 
                 try
                 {
@@ -235,6 +236,9 @@ namespace IADEditor.GameDev
 
                 _vsInstance.Solution.SolutionBuild.SolutionConfigurations.Item(buildConfig).Activate();
                 _vsInstance.ExecuteCommand("Build.BuildSolution");
+
+                // Wait for the build to complete before proceeding
+                buildCompleteEvent.WaitOne();
             }
             catch (Exception e)
             {
@@ -258,9 +262,6 @@ namespace IADEditor.GameDev
 
             BuildDone = true;
             BuildSucceeded = success;
-
-            // Raise the event
-            BuildSolutionDone?.Invoke(success);
         }
 
         private static void OnBuildSolutionBegin(string project, string projectConfig, string platform, string solutionConfig)

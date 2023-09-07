@@ -188,10 +188,12 @@ namespace IADEditor.GameProject
             {
                 UnloadGameCodeDll();
 
-                VisualStudio.BuildSolutionDone += LoadGameCodeDllEvent;
+                await Task.Run(() => VisualStudio.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow));
 
-                await Task.Run(() =>
-                    VisualStudio.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow));
+                if (VisualStudio.BuildSucceeded)
+                {
+                    LoadGameCodeDll();
+                }
             }
             catch (Exception e)
             {
@@ -302,16 +304,6 @@ namespace IADEditor.GameProject
                     }
                 }
             }
-        }
-
-        private void LoadGameCodeDllEvent(bool success)
-        {
-            if (success)
-            {
-                LoadGameCodeDll();
-            }
-
-            VisualStudio.BuildSolutionDone -= LoadGameCodeDllEvent;
         }
     }
 }
