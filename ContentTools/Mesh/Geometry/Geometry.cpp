@@ -182,6 +182,112 @@ namespace iad::tools
 
 			PackVerticesStatic(mesh);
 		}
+
+		u64 GetMeshSize(const iad::tools::Mesh& mesh)
+		{
+			const u64 num_vertices{ mesh.vertices.size() };
+			const u64 vertex_buffer_size{ sizeof(iad::tools::packed_vertex::VertexStatic) * num_vertices };
+			const u64 index_size
+			{
+				(num_vertices < (1 << 16))
+				? sizeof(u16)
+				: sizeof(u32)
+			};
+			const u64 index_buffer_size{ index_size * mesh.indices.size() };
+
+			constexpr u64 su32{ sizeof(u32) };
+			const u64 size
+			{
+				su32 + mesh.name.size() +
+				su32 + su32 + su32 + su32 + su32 +
+				sizeof(f32) + vertex_buffer_size +
+				index_buffer_size
+			};
+
+			return size;
+		}
+
+		u64 GetSceneSize(const iad::tools::Scene& scene)
+		{
+			constexpr u64 su32{ sizeof(u32) };
+			u64 size{ su32 + scene.name.size() + su32 };
+
+			for (auto& lod : scene.lod_groups)
+			{
+				u64 lod_size{ su32 + lod.name.size() + su32 };
+
+				for (auto& mesh : lod.meshes)
+				{
+					lod_size += GetMeshSize(mesh);
+				}
+				size += lod_size;
+			}
+
+			return size;
+		}
+
+		void PackMeshData(const iad::tools::Mesh& mesh, u8* const buffer, u64& at)
+		{
+			constexpr u64 su32{ sizeof(u32) };
+			u32 s{ 0 };
+
+			// Mesh name
+			s = (u32)mesh.name.size();
+			memcpy(&buffer[at], &s, su32); at += su32;
+			memcpy(&buffer[at], mesh.name.c_str(), s); at += s;
+
+			// Lod ID
+			s = mesh.lod_id;
+			memcpy(&buffer[at], &s, su32); at += su32;
+
+			// Vertex size
+			constexpr u32 vertex_size{ sizeof(iad::tools::packed_vertex::VertexStatic) };
+			s = vertex_size;
+			memcpy(&buffer[at], &s, su32); at += su32;
+
+			// Number of vertices
+			const u32 num_vertices{ (u32)mesh.vertices.size() };
+			s = num_vertices;
+			memcpy(&buffer[at], &s, su32); at += su32;
+
+			// Index size (16 bit or 32 bit)
+			const u32 index_size
+			{
+				(num_vertices < (1 << 16))
+					? sizeof(u16)
+					: sizeof(u32)
+			};
+			s = index_size;
+			memcpy(&buffer[at], &s, su32); at += su32;
+
+			// Number of indices
+			const u32 num_indices{ (u32)mesh.indices.size() };
+			s = num_indices;
+			memcpy(&buffer[at], &s, su32); at += su32;
+
+			// LOD threshold
+			memcpy(&buffer[at], &mesh.lod_threshold, sizeof(f32)); at += sizeof(f32);
+
+			// Vertex data
+			s = vertex_size * num_vertices;
+			memcpy(&buffer[at], mesh.packed_vertices_static.data(), s); at += s;
+
+			// Index data
+			s = index_size * num_indices;
+			void* data{ (void*)mesh.indices.data() };
+			iad::utl::vector<u16> indices;
+
+			if (index_size == sizeof(u16))
+			{
+				indices.reserve(num_indices);
+				for (u32 i{ 0 }; i < num_indices; ++i)
+				{
+					indices[i] = (u16)mesh.indices[i];
+				}
+				data = (void*)indices.data();
+			}
+			memcpy(&buffer[at], data, s); at += s;
+		}
 	}
 }
 
@@ -198,4 +304,40 @@ void iad::tools::ProcessScene(Scene& scene, const GeometryImportSettings setting
 
 void iad::tools::PackData(const Scene& scene, SceneData& data)
 {
+	constexpr u64 su32{ sizeof(u32) };
+
+	// Calculate scene size
+	const u64 scene_size{ GetSceneSize(scene) };
+
+	data.buffer_size = (u32)scene_size;
+	data.buffer = (u8*)CoTaskMemAlloc(scene_size);
+	assert(data.buffer);
+
+	u8* const buffer{ data.buffer };
+	u64 at{ 0 };
+	u64 s{ 0 };
+
+	// Scene name
+	s = (u32)scene.name.size();
+	memcpy(&buffer[at], &s, su32); at += su32;
+	memcpy(&buffer[at], scene.name.c_str(), s); at += s;
+
+	// Number of LOD's
+	s = (u32)scene.lod_groups.size();
+	memcpy(&buffer[at], &s, su32); at += su32;
+	for (auto& lod : scene.lod_groups)
+	{
+		// Lod name
+		s = (u32)lod.name.size();
+		memcpy(&buffer[at], &s, su32); at += su32;
+		memcpy(&buffer[at], lod.name.c_str(), s); at += s;
+
+		// Number of meshes in this LOD
+		s = (u32)lod.meshes.size();
+		memcpy(&buffer[at], &s, su32); at += su32;
+		for (auto& mesh : lod.meshes)
+		{
+			PackMeshData(mesh, buffer, at);
+		}
+	}
 }
