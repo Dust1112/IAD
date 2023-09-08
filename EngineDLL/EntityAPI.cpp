@@ -24,7 +24,7 @@ namespace
             DirectX::XMVECTOR quat{ DirectX::XMQuaternionRotationRollPitchYawFromVector(DirectX::XMLoadFloat3A(&rot)) };
             DirectX::XMFLOAT4A rot_quat{};
             DirectX::XMStoreFloat4A(&rot_quat, quat);
-            memcpy(&info.rotation[0], &rot_quat.x, sizeof(rotation));
+            memcpy(&info.rotation[0], &rot_quat.x, sizeof(info.rotation));
 
             return info;
         }

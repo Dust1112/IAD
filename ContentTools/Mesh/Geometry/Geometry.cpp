@@ -340,4 +340,6 @@ void iad::tools::PackData(const Scene& scene, SceneData& data)
 			PackMeshData(mesh, buffer, at);
 		}
 	}
+
+	assert(scene_size == at);
 }
