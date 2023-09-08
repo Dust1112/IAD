@@ -34,7 +34,7 @@ namespace iad::tools
 
 		void ProcessNormals(Mesh& mesh, f32 smoothingAngle)
 		{
-			const f32 cos_angle{ XMScalarCos(pi - smoothingAngle * pi / 180.f) };
+			const f32 cos_alpha{ XMScalarCos(pi - smoothingAngle * pi / 180.f) };
 			const bool is_hard_edge{ XMScalarNearEqual(smoothingAngle, 180.f, epsilon) };
 			const bool is_soft_edge{ XMScalarNearEqual(smoothingAngle, 0.f, epsilon) };
 			const u32 num_indices{ (u32)mesh.raw_indices.size() };
@@ -66,15 +66,15 @@ namespace iad::tools
 					{
 						for (u32 k{ j + 1 }; k < num_refs; ++k)
 						{
-							f32 n{ 0.f }; // This value represents the cosine of the andgle between normals.
+							f32 cos_theta{ 0.f }; // This value represents the cosine of the andgle between normals.
 							XMVECTOR n2{ XMLoadFloat3(&mesh.normals[refs[k]]) };
 
 							if (!is_soft_edge)
 							{
-								XMStoreFloat(&n, XMVector3Dot(n1, n2) * XMVector3ReciprocalLength(n1));
+								XMStoreFloat(&cos_theta, XMVector3Dot(n1, n2) * XMVector3ReciprocalLength(n1));
 							}
 
-							if (is_soft_edge || n >= cos_angle)
+							if (is_soft_edge || cos_theta >= cos_alpha)
 							{
 								n1 += n2;
 
