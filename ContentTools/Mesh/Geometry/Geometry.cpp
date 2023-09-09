@@ -183,38 +183,47 @@ namespace iad::tools
 			PackVerticesStatic(mesh);
 		}
 
-		u64 GetMeshSize(const iad::tools::Mesh& mesh)
+		u64 GetMeshSize(const Mesh& mesh)
 		{
 			const u64 num_vertices{ mesh.vertices.size() };
-			const u64 vertex_buffer_size{ sizeof(iad::tools::packed_vertex::VertexStatic) * num_vertices };
-			const u64 index_size
-			{
-				(num_vertices < (1 << 16))
-				? sizeof(u16)
-				: sizeof(u32)
-			};
+			const u64 vertex_buffer_size{ sizeof(packed_vertex::VertexStatic) * num_vertices };
+			const u64 index_size{ (num_vertices < (1 << 16)) ? sizeof(u16) : sizeof(u32) };
 			const u64 index_buffer_size{ index_size * mesh.indices.size() };
 
 			constexpr u64 su32{ sizeof(u32) };
 			const u64 size
 			{
-				su32 + mesh.name.size() +
-				su32 + su32 + su32 + su32 + su32 +
-				sizeof(f32) + vertex_buffer_size +
-				index_buffer_size
+				su32 + mesh.name.size() +				// Mesh name length and room for mesh name string
+				su32 +									// Mesh ID	
+				su32 +									// Vertex size
+				su32 +									// Number of vertices
+				su32 +									// Index size (16 bit or 32 bit)
+				su32 +									// Number of indices
+				sizeof(f32) +							// LOD threshold
+				vertex_buffer_size +					// Room for vertices
+				index_buffer_size						// Room for indices
 			};
 
 			return size;
 		}
 
-		u64 GetSceneSize(const iad::tools::Scene& scene)
+		u64 GetSceneSize(const Scene& scene)
 		{
 			constexpr u64 su32{ sizeof(u32) };
-			u64 size{ su32 + scene.name.size() + su32 };
+			u64 size
+			{
+				su32 +						// Name length
+				scene.name.size() +			// Room for scene name string
+				su32						// Number of LODs
+			};
 
 			for (auto& lod : scene.lod_groups)
 			{
-				u64 lod_size{ su32 + lod.name.size() + su32 };
+				u64 lod_size
+				{
+					su32 + lod.name.size() +		// LOD name length and room for LPD name string
+					su32							// Number of meshes in this LOD
+				};
 
 				for (auto& mesh : lod.meshes)
 				{
@@ -226,7 +235,7 @@ namespace iad::tools
 			return size;
 		}
 
-		void PackMeshData(const iad::tools::Mesh& mesh, u8* const buffer, u64& at)
+		void PackMeshData(const Mesh& mesh, u8* const buffer, u64& at)
 		{
 			constexpr u64 su32{ sizeof(u32) };
 			u32 s{ 0 };
@@ -241,7 +250,7 @@ namespace iad::tools
 			memcpy(&buffer[at], &s, su32); at += su32;
 
 			// Vertex size
-			constexpr u32 vertex_size{ sizeof(iad::tools::packed_vertex::VertexStatic) };
+			constexpr u32 vertex_size{ sizeof(packed_vertex::VertexStatic) };
 			s = vertex_size;
 			memcpy(&buffer[at], &s, su32); at += su32;
 
@@ -251,12 +260,7 @@ namespace iad::tools
 			memcpy(&buffer[at], &s, su32); at += su32;
 
 			// Index size (16 bit or 32 bit)
-			const u32 index_size
-			{
-				(num_vertices < (1 << 16))
-					? sizeof(u16)
-					: sizeof(u32)
-			};
+			const u32 index_size { (num_vertices < (1 << 16)) ? sizeof(u16) : sizeof(u32) };
 			s = index_size;
 			memcpy(&buffer[at], &s, su32); at += su32;
 
@@ -275,7 +279,7 @@ namespace iad::tools
 			// Index data
 			s = index_size * num_indices;
 			void* data{ (void*)mesh.indices.data() };
-			iad::utl::vector<u16> indices;
+			utl::vector<u16> indices;
 
 			if (index_size == sizeof(u16))
 			{
@@ -340,4 +344,6 @@ void iad::tools::PackData(const Scene& scene, SceneData& data)
 			PackMeshData(mesh, buffer, at);
 		}
 	}
+
+	assert(scene_size == at);
 }
