@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using IADEditor.Content.Enums;
 using IADEditor.DLLWrapper;
 using IADEditor.DLLWrapper.Structs;
+using IADEditor.Editors.GeometryEditor;
 using IADEditor.Utilities.Controls;
 
 namespace IADEditor.Content;
@@ -56,6 +57,7 @@ public partial class PrimitiveMeshDialog : Window
 
         var geometry = new Geometry();
         ContentToolsAPI.CreatePrimitiveMesh(geometry, info);
+        (DataContext as GeometryEditor).SetAsset(geometry);
     }
 
     private float Value(ScalarBox scalarBox, float min)
