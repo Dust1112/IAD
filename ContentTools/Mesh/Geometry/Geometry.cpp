@@ -283,7 +283,7 @@ namespace iad::tools
 
 			if (index_size == sizeof(u16))
 			{
-				indices.reserve(num_indices);
+				indices.resize(num_indices);
 				for (u32 i{ 0 }; i < num_indices; ++i)
 				{
 					indices[i] = (u16)mesh.indices[i];
