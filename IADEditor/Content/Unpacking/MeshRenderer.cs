@@ -8,6 +8,7 @@ using System.Windows.Media.Media3D;
 using IADEditor.Common;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using Point = System.Windows.Point;
+using Color = System.Windows.Media.Color;
 
 namespace IADEditor.Content.Unpacking;
 
@@ -42,6 +43,7 @@ public class MeshRenderer : ViewModelBase
             if (_cameraPosition != value)
             {
                 _cameraPosition = value;
+                CameraDirection = new Vector3D(-value.X, -value.Y, -value.Z);
                 OnPropertyChanged(nameof(CameraPosition));
                 OnPropertyChanged(nameof(OffsetCameraPosition));
             }
@@ -145,7 +147,7 @@ public class MeshRenderer : ViewModelBase
             // Unpack vertices
             using (var reader = new BinaryReader(new MemoryStream(mesh.Vertices)))
             {
-                for (int i = 0; i < mesh.VertexSize; ++i)
+                for (int i = 0; i < mesh.VertexCount; ++i)
                 {
                     // Read positions
                     var posX = reader.ReadSingle();
