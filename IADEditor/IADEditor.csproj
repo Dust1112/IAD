@@ -44,6 +44,8 @@
     </COMReference>
   </ItemGroup>
 
-
-
+  <ItemGroup>
+    <None Remove="Resources\PrimitiveMeshView\PlaneTexture.png" />
+    <Resource Include="Resources\PrimitiveMeshView\PlaneTexture.png" />
+  </ItemGroup>
 </Project>
