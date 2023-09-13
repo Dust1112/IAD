@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using IADEditor.Content.Enums;
 using IADEditor.DLLWrapper;
 using IADEditor.DLLWrapper.Structs;
@@ -11,6 +16,13 @@ namespace IADEditor.Content;
 
 public partial class PrimitiveMeshDialog : Window
 {
+    private static readonly List<ImageBrush> _textures = new List<ImageBrush>();
+    
+    static PrimitiveMeshDialog()
+    {
+        LoadTextures();
+    }
+
     public PrimitiveMeshDialog()
     {
         InitializeComponent();
@@ -37,20 +49,20 @@ public partial class PrimitiveMeshDialog : Window
         {
             case PrimitiveMeshType.Plane:
                     info.SegmentX = (int)XSliderPlane.Value;
-                    info.SegmentX = (int)ZSliderPlane.Value;
+                    info.SegmentZ = (int)ZSliderPlane.Value;
                     info.Size.X = Value(WidthScalarBoxPlane, 0.001f);
                     info.Size.Z = Value(LengthScalarBoxPlane, 0.001f);
                     break;
             case PrimitiveMeshType.Cube:
-                break;
+                return;
             case PrimitiveMeshType.UvSphere:
-                break;
+                return;
             case PrimitiveMeshType.IcoSphere:
-                break;
+                return;
             case PrimitiveMeshType.Cylinder:
-                break;
+                return;
             case PrimitiveMeshType.Capsule:
-                break;
+                return;
             default:
                 break;
         }
@@ -58,11 +70,51 @@ public partial class PrimitiveMeshDialog : Window
         var geometry = new Geometry();
         ContentToolsAPI.CreatePrimitiveMesh(geometry, info);
         (DataContext as GeometryEditor).SetAsset(geometry);
+        OnTexture_CheckBox_Click(TextureCheckBox, null);
     }
 
     private float Value(ScalarBox scalarBox, float min)
     {
         float.TryParse(scalarBox.Value, out var result);
         return Math.Max(result, min);
+    }
+    
+    private static void LoadTextures()
+    {
+        var uris = new List<Uri>
+        {
+            new("pack://application:,,,/Resources/PrimitiveMeshView/PlaneTexture.png"),
+        };
+        
+        _textures.Clear();
+
+        foreach (var uri in uris)
+        {
+            var resource = Application.GetResourceStream(uri);
+            using var reader = new BinaryReader(resource.Stream);
+            var data = reader.ReadBytes((int)resource.Stream.Length);
+            var imageSource = (BitmapSource)new ImageSourceConverter().ConvertFrom(data);
+            imageSource.Freeze();
+            var brush = new ImageBrush(imageSource);
+            brush.Transform = new ScaleTransform(1, -1, 0.5, 0.5);
+            brush.ViewportUnits = BrushMappingMode.Absolute;
+            brush.Freeze();
+            _textures.Add(brush);
+        }
+    }
+
+    private void OnTexture_CheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        Brush brush = Brushes.White;
+        if ((sender as CheckBox).IsChecked == true)
+        {
+            brush = _textures[(int)PrimTypeComboBox.SelectedItem];
+        }
+
+        var vm = DataContext as GeometryEditor;
+        foreach (var mesh in vm.MeshRenderer.Meshes)
+        {
+            mesh.Diffuse = brush;
+        }
     }
 }

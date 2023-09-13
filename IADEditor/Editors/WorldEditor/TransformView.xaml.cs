@@ -42,7 +42,7 @@ namespace IADEditor.Editors
 
         private void OnPosition_VectorBox_PreviewMouse_LBU(object sender, MouseButtonEventArgs e)
         {
-            RecordActions(GetPositionAction(), "Position chnaged");
+            RecordActions(GetPositionAction(), "Position changed");
         }
 
         private void OnRotation_VectorBox_PreviewMouse_LBD(object sender, MouseButtonEventArgs e)
@@ -53,7 +53,7 @@ namespace IADEditor.Editors
 
         private void OnRotation_VectorBox_PreviewMouse_LBU(object sender, MouseButtonEventArgs e)
         {
-            RecordActions(GetRotationAction(), "Rotation chnaged");
+            RecordActions(GetRotationAction(), "Rotation changed");
         }
 
         private void OnScale_VectorBox_PreviewMouse_LBD(object sender, MouseButtonEventArgs e)
@@ -64,7 +64,7 @@ namespace IADEditor.Editors
 
         private void OnScale_VectorBox_PreviewMouse_LBU(object sender, MouseButtonEventArgs e)
         {
-            RecordActions(GetScaleAction(), "Scale chnaged");
+            RecordActions(GetScaleAction(), "Scale changed");
         }
 
         private void OnPosition_VectorBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
