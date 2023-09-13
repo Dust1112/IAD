@@ -16,5 +16,3 @@ Existing configurations:
   #### 2. **DebugEditor**
   #### 3. **Release**
   #### 4. **ReleaseEditor**
-  
-When building for the first time or after code changes, the `Cannot find engine.lib` might appear. In that case, build the **Engine** first, then build the rest of the projects. After a succesful build, run the `IADEditor` project in either **DebugEditor** or **ReleaseEditor**.
