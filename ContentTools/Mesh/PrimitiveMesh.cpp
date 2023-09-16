@@ -109,6 +109,115 @@ namespace iad::tools
             return mesh;
         }
 
+        Mesh CreateUvSphere(const PrimitiveInitInfo& info)
+        {
+            const u32 phi_count{ math::clamp(info.segments[Axis::x], 3u, 256u) };
+            const u32 theta_count{ math::clamp(info.segments[Axis::y], 2u, 256u) };
+            const f32 theta_step{ math::pi / theta_count };
+            const f32 phi_step{ math::two_pi / phi_count };
+            const u32 num_vertices{ 2 + phi_count * (theta_count - 1) };
+            const u32 num_indices{ 2 * 3 * phi_count + 2 * 3 * phi_count * (theta_count - 2) };
+
+            Mesh mesh{};
+            mesh.name = "uv_sphere";
+            mesh.positions.resize(num_vertices);
+
+            // Add the top vertex
+            u32 c{ 0 };
+            mesh.positions[c++] = { 0.f, info.size.y, 0.f };
+
+            for (u32 j{ 1 }; j <= (theta_count - 1); ++j)
+            {
+                const f32 theta{ j * theta_step };
+                for (u32 i{ 0 }; i < phi_count; ++i)
+                {
+                    const f32 phi{ i * phi_step };
+                    mesh.positions[c++] =
+                    {
+                        info.size.x * DirectX::XMScalarSin(theta) * DirectX::XMScalarCos(phi),
+                        info.size.y * DirectX::XMScalarCos(theta),
+                        -info.size.z * DirectX::XMScalarSin(theta) * DirectX::XMScalarSin(phi),
+                    };
+                }
+            }
+
+            // Add the bottom vertex
+            mesh.positions[c++] = { 0.f, -info.size.y, 0.f };
+            assert(c == num_vertices);
+
+            c = 0;
+            mesh.raw_indices.resize(num_indices);
+
+            // Indices for the top cap, connecting the north pole to the first ring
+            for (u32 i{ 0 }; i < phi_count - 1; ++i)
+            {
+                mesh.raw_indices[c++] = 0;
+                mesh.raw_indices[c++] = i + 1;
+                mesh.raw_indices[c++] = i + 2;
+            }
+
+            mesh.raw_indices[c++] = 0;
+            mesh.raw_indices[c++] = phi_count;
+            mesh.raw_indices[c++] = 1;
+
+            // Indices for the section between the top and bottom rings
+            for (u32 j{ 0 }; j < (theta_count - 2); ++j)
+            {
+                for (u32 i{ 0 }; i < (phi_count - 1); ++i)
+                {
+                    const u32 index[4]
+                    {
+                        1 + i + j * phi_count,
+                        1 + i + (j + 1) * phi_count,
+                        1 + (i + 1) + (j + 1) * phi_count,
+                        1 + (i + 1) + j * phi_count
+                    };
+
+                    mesh.raw_indices[c++] = index[0];
+                    mesh.raw_indices[c++] = index[1];
+                    mesh.raw_indices[c++] = index[2];
+
+                    mesh.raw_indices[c++] = index[0];
+                    mesh.raw_indices[c++] = index[2];
+                    mesh.raw_indices[c++] = index[3];
+                }
+
+                const u32 index[4]
+                {
+                    phi_count + j * phi_count,
+                    phi_count + (j + 1) * phi_count,
+                    1 + (j + 1) * phi_count,
+                    1 + j * phi_count
+                };
+
+                mesh.raw_indices[c++] = index[0];
+                mesh.raw_indices[c++] = index[1];
+                mesh.raw_indices[c++] = index[2];
+
+                mesh.raw_indices[c++] = index[0];
+                mesh.raw_indices[c++] = index[2];
+                mesh.raw_indices[c++] = index[3];
+            }
+
+            // Indices for the bottom cap, connecting the south pole to the last ring
+            const u32 south_pole_index{ (u32)mesh.positions.size() - 1 };
+            for (u32 i{ 0 }; i < (phi_count - 1); ++i)
+            {
+                mesh.raw_indices[c++] = south_pole_index;
+                mesh.raw_indices[c++] = south_pole_index - phi_count + i + 1;
+                mesh.raw_indices[c++] = south_pole_index - phi_count + i;
+            }
+
+            mesh.raw_indices[c++] = south_pole_index;
+            mesh.raw_indices[c++] = south_pole_index - phi_count;
+            mesh.raw_indices[c++] = south_pole_index - 1;
+
+            mesh.uv_sets.resize(1);
+            mesh.uv_sets[0].resize(mesh.raw_indices.size());
+
+            return mesh;
+        }
+
         void CreatePlane(Scene& scene, const PrimitiveInitInfo& info)
         {
             LodGroup lod{};
@@ -123,6 +232,10 @@ namespace iad::tools
 
         void CreateUvSphere(Scene& scene, const PrimitiveInitInfo& info)
         {
+            LodGroup lod{};
+            lod.name = "uv_sphere";
+            lod.meshes.emplace_back(CreateUvSphere(info));
+            scene.lod_groups.emplace_back(lod);
         }
 
         void CreateIcoSphere(Scene& scene, const PrimitiveInitInfo& info)

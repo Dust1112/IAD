@@ -48,15 +48,20 @@ public partial class PrimitiveMeshDialog : Window
         switch (primitiveType)
         {
             case PrimitiveMeshType.Plane:
-                    info.SegmentX = (int)XSliderPlane.Value;
-                    info.SegmentZ = (int)ZSliderPlane.Value;
-                    info.Size.X = Value(WidthScalarBoxPlane, 0.001f);
-                    info.Size.Z = Value(LengthScalarBoxPlane, 0.001f);
-                    break;
+                info.SegmentX = (int)XSliderPlane.Value;
+                info.SegmentZ = (int)ZSliderPlane.Value;
+                info.Size.X = Value(WidthScalarBoxPlane, 0.001f);
+                info.Size.Z = Value(LengthScalarBoxPlane, 0.001f);
+                break;
             case PrimitiveMeshType.Cube:
                 return;
             case PrimitiveMeshType.UvSphere:
-                return;
+                info.SegmentX = (int)XSliderUvSphere.Value;
+                info.SegmentY = (int)YSliderUvSphere.Value;
+                info.Size.X = Value(XScalarBoxUvSphere, 0.001f);
+                info.Size.Y = Value(YScalarBoxUvSphere, 0.001f);
+                info.Size.Z = Value(ZScalarBoxUvSphere, 0.001f);
+                break;
             case PrimitiveMeshType.IcoSphere:
                 return;
             case PrimitiveMeshType.Cylinder:
@@ -83,6 +88,8 @@ public partial class PrimitiveMeshDialog : Window
     {
         var uris = new List<Uri>
         {
+            new("pack://application:,,,/Resources/PrimitiveMeshView/PlaneTexture.png"),
+            new("pack://application:,,,/Resources/PrimitiveMeshView/PlaneTexture.png"),
             new("pack://application:,,,/Resources/PrimitiveMeshView/PlaneTexture.png"),
         };
         
