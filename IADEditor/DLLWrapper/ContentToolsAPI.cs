@@ -24,7 +24,7 @@ public static class ContentToolsAPI
         {
             CreatePrimitiveMesh(sceneData, info);
             Debug.Assert(sceneData.Data != IntPtr.Zero && sceneData.DataSize > 0);
-             var data = new byte[sceneData.DataSize];
+            var data = new byte[sceneData.DataSize];
             Marshal.Copy(sceneData.Data, data, 0, sceneData.DataSize);
             geometry.FromRawData(data);
         }
