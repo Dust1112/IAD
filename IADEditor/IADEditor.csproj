@@ -47,5 +47,7 @@
   <ItemGroup>
     <None Remove="Resources\PrimitiveMeshView\PlaneTexture.png" />
     <Resource Include="Resources\PrimitiveMeshView\PlaneTexture.png" />
+    <None Remove="Resources\PrimitiveMeshView\UVSphereTexture.png" />
+    <Resource Include="Resources\PrimitiveMeshView\UVSphereTexture.png" />
   </ItemGroup>
 </Project>

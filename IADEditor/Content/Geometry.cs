@@ -11,6 +11,7 @@ namespace IADEditor.Content;
 public class Geometry : Asset
 {
     private readonly List<LODGroup?> _lodGroups = new List<LODGroup?>();
+    public GeometryImportSettings ImportSettings { get; } = new GeometryImportSettings();
     
     public Geometry() : base(AssetType.Mesh)
     {
