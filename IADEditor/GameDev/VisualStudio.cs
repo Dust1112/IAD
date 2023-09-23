@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
-using System.Threading.Tasks;
 using IADEditor.GameProject;
 using IADEditor.Utilities;
 using IADEditor.Utilities.Enums;
