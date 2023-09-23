@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows.Documents;
 using IADEditor.Content.Enums;
 using IADEditor.Utilities;
+using IADEditor.Utilities.Enums;
 
 namespace IADEditor.Content;
 
@@ -120,5 +123,81 @@ public class Geometry : Asset
     {
         Debug.Assert(lodGroup >= 0 && lodGroup < _lodGroups.Count);
         return _lodGroups.Any() ? _lodGroups[lodGroup] : null;
+    }
+
+    public override IEnumerable<string> Save(string file)
+    {
+        Debug.Assert(_lodGroups.Any());
+        var savedFiles = new List<string>();
+        if (!_lodGroups.Any()) { return savedFiles; }
+
+        var path = Path.GetDirectoryName(file) + Path.DirectorySeparatorChar;
+        var fileName = Path.GetFileNameWithoutExtension(file);
+
+        try
+        {
+            foreach (var lodGroup in _lodGroups)
+            {
+                Debug.Assert(lodGroup.LODs.Any());
+                
+                // Use the name of the most detailed LOD for file name
+                var meshFileName = ContentHelper.SanitizeFileName(path + fileName + "_" + lodGroup.LODs[0].Name + AssetFileExtension);
+                
+                // NOTE: I have to make a different id for each new asset file
+                Guid = Guid.NewGuid();
+                byte[] data = null;
+                using (var writer = new BinaryWriter(new MemoryStream()))
+                {
+                    writer.Write(lodGroup.Name);
+                    writer.Write(lodGroup.LODs.Count);
+                    var hashes = new List<byte>();
+                    foreach (var lod in lodGroup.LODs)
+                    {
+                        LODToBinary(lod, writer, out var hash);
+                        hashes.AddRange(hash);
+                    }
+
+                    Hash = ContentHelper.ComputeHash(hashes.ToArray());
+                    data = (writer.BaseStream as MemoryStream).ToArray();
+                    Icon = GenerateIcon(lodGroup.LODs[0]);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Write(e.Message);
+            Logger.Log(MessageType.Error, $"Failed to save geometry to {file}");
+        }
+
+        return savedFiles;
+    }
+
+    private byte[] GenerateIcon(MeshLOD lodGroupLoD)
+    {
+        return null;
+    }
+
+    private void LODToBinary(MeshLOD lod, BinaryWriter writer, out byte[] hash)
+    {
+        writer.Write(lod.Name);
+        writer.Write(lod.LodThreshold);
+        writer.Write(lod.Meshes.Count);
+
+        var meshDataBegin = writer.BaseStream.Position;
+        
+        foreach (var mesh in lod.Meshes)
+        {
+            writer.Write(mesh.VertexSize);
+            writer.Write(mesh.VertexCount);
+            writer.Write(mesh.IndexSize);
+            writer.Write(mesh.Vertices);
+            writer.Write(mesh.Indices);
+        }
+
+        var meshDataSize = writer.BaseStream.Position - meshDataBegin;
+        Debug.Assert(meshDataSize > 0);
+
+        var buffer = (writer.BaseStream as MemoryStream).ToArray();
+        hash = ContentHelper.ComputeHash(buffer, (int)meshDataBegin, (int)meshDataSize);
     }
 }
