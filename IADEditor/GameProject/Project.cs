@@ -13,6 +13,7 @@ using System.Windows.Input;
 using IADEditor.Components;
 using IADEditor.DLLWrapper;
 using IADEditor.GameDev;
+using IADEditor.GameDev.Enums;
 
 namespace IADEditor.GameProject
 {
@@ -34,6 +35,7 @@ namespace IADEditor.GameProject
 
         public string FullPath => $@"{Path}{Name}{Extension}";
         public string ContentPath => $@"{Path}Content\";
+        public string CodePath => $@"{Path}Game Code\";
 
         [DataMember(Name = "Scenes")]
         private readonly ObservableCollection<Scene> _scenes = new ObservableCollection<Scene>();
@@ -164,15 +166,12 @@ namespace IADEditor.GameProject
         private async Task RunGame(bool debug)
         {
             string configName = GetConfigurationName(StandAloneBuildConfiguration);
-            await Task.Run(() => VisualStudio.BuildSolution(this, configName, debug));
+            await Task.Run(() => EditorWrapper.BuildSolution(this, configName, debug));
 
-            Logger.Log(MessageType.Info, "Running the game in 5s...");
-            await Task.Delay(5000);
-
-            if (VisualStudio.BuildDone && VisualStudio.BuildSucceeded)
+            if (EditorWrapper.BuildDone && EditorWrapper.BuildSucceeded)
             {
                 SaveToBinary();
-                await Task.Run(() => VisualStudio.Run(this, configName, debug));
+                await Task.Run(() => EditorWrapper.Run(this, configName, debug));
             }
             else
             {
@@ -180,7 +179,7 @@ namespace IADEditor.GameProject
             }
         }
 
-        private async Task StopGame() => await Task.Run(() => VisualStudio.Stop());
+        private async Task StopGame() => await Task.Run(() => EditorWrapper.Stop());
 
         private async Task BuildGameCodeDll(bool showWindow = true)
         {
@@ -188,7 +187,7 @@ namespace IADEditor.GameProject
             {
                 UnloadGameCodeDll();
 
-                await Task.Run(() => VisualStudio.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow));
+                await Task.Run(() => EditorWrapper.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow, Editor.VsCode));
 
                 if (VisualStudio.BuildSucceeded)
                 {
