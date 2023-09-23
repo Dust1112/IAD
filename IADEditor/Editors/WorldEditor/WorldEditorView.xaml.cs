@@ -33,5 +33,11 @@ namespace IADEditor.Editors
             var dialog = new PrimitiveMeshDialog();
             dialog.ShowDialog();
         }
+
+        private void OpenSettingsMenu_Button_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new SettingsDialog();
+            dialog.ShowDialog();
+        }
     }
 }
