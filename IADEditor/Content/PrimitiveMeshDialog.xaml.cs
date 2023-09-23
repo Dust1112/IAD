@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,8 +10,11 @@ using System.Windows.Media.Imaging;
 using IADEditor.Content.Enums;
 using IADEditor.DLLWrapper;
 using IADEditor.DLLWrapper.Structs;
+using IADEditor.Editors;
 using IADEditor.Editors.GeometryEditor;
+using IADEditor.GameProject;
 using IADEditor.Utilities.Controls;
+using Microsoft.Win32;
 
 namespace IADEditor.Content;
 
@@ -130,6 +134,23 @@ public partial class PrimitiveMeshDialog : Window
         foreach (var mesh in vm.MeshRenderer.Meshes)
         {
             mesh.Diffuse = brush;
+        }
+    }
+
+    private void OnSave_Button_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new SaveFileDialog
+        {
+            InitialDirectory = Project.Current.ContentPath,
+            Filter = "Asset file (*.asset)|*.asset",
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(dialog.FileName));
+            var asset = (DataContext as IAssetEditor).Asset;
+            Debug.Assert(asset != null);
+            asset.Save(dialog.FileName);
         }
     }
 }
