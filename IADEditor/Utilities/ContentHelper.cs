@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -47,5 +48,17 @@ public static class ContentHelper
         }
 
         return null;
+    }
+    
+    public static bool IsValidPath(string path)
+    {
+        try
+        {
+            return Path.IsPathRooted(path) && File.Exists(path);
+        }
+        catch (Exception ex)  // Catching exceptions that might be raised if the path is invalid.
+        {
+            return false;
+        }
     }
 }

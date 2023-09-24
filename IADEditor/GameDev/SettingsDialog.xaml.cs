@@ -1,13 +1,15 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using IADEditor.Utilities;
+using IADEditor.Utilities.Enums;
 
 namespace IADEditor.GameDev;
 
-public partial class SettingsDialog : Window
+public partial class SettingsDialog
 {
     private bool _textChanged = false;
     private bool _suppressTextChanged = false;
-    
+
     public SettingsDialog()
     {
         InitializeComponent();
@@ -35,9 +37,22 @@ public partial class SettingsDialog : Window
         }
     }
 
-    private void OnSave_Button_Click(object sender, RoutedEventArgs e)
+    private async void OnSave_Button_Click(object sender, RoutedEventArgs e)
     {
         _textChanged = false;
         SaveButton.IsEnabled = false;
+
+        if (DataContext is Settings vm)
+        {
+            if (ContentHelper.IsValidPath(vm.CompilerText) && ContentHelper.IsValidPath(vm.EditorText))
+            {
+                await vm.SetEnvironmentVariables();
+                Logger.Log(MessageType.Info, "Changes applied successfully.");
+            }
+            else
+            {
+                Logger.Log(MessageType.Error, "Executable not found or incorrect path.");
+            }
+        }
     }
 }
