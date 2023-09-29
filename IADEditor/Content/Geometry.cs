@@ -4,8 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows;
 using System.Windows.Documents;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using IADEditor.Content.Enums;
+using IADEditor.Content.Unpacking;
+using IADEditor.Editors.GeometryEditor;
 using IADEditor.Utilities;
 using IADEditor.Utilities.Enums;
 
@@ -161,6 +166,18 @@ public class Geometry : Asset
                     data = (writer.BaseStream as MemoryStream).ToArray();
                     Icon = GenerateIcon(lodGroup.LODs[0]);
                 }
+                
+                Debug.Assert(data?.Length > 0);
+
+                using (var writer = new BinaryWriter(File.Open(meshFileName, FileMode.Create, FileAccess.Write)))
+                {
+                    WriteAssetFileHeader(writer);
+                    ImportSettings.ToBinary(writer);
+                    writer.Write(data.Length);
+                    writer.Write(data);
+                }
+                
+                savedFiles.Add(meshFileName);
             }
         }
         catch (Exception e)
@@ -172,9 +189,26 @@ public class Geometry : Asset
         return savedFiles;
     }
 
-    private byte[] GenerateIcon(MeshLOD lodGroupLoD)
+    private byte[] GenerateIcon(MeshLOD lod)
     {
-        return null;
+        var width = 90 * 4;
+
+        BitmapSource bmp = null;
+
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            bmp = GeometryView.RenderToBitmap(new MeshRenderer(lod, null), width, width);
+            bmp = new TransformedBitmap(bmp, new ScaleTransform(0.25, 0.25, 0.5, 0.5));
+        });
+
+        using var memStream = new MemoryStream();
+        memStream.SetLength(0);
+
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bmp));
+        encoder.Save(memStream);
+
+        return memStream.ToArray();
     }
 
     private void LODToBinary(MeshLOD lod, BinaryWriter writer, out byte[] hash)

@@ -1,4 +1,5 @@
-﻿using IADEditor.Common;
+﻿using System.IO;
+using IADEditor.Common;
 
 namespace IADEditor.Content;
 
@@ -96,5 +97,15 @@ public class GeometryImportSettings : ViewModelBase
         ReverseHandedness = false;
         ImportEmbeddedTextures = false;
         ImportAnimations = false;
+    }
+
+    public void ToBinary(BinaryWriter writer)
+    {
+        writer.Write(CalculateNormals);
+        writer.Write(CalculateTangents);
+        writer.Write(SmoothingAngle);
+        writer.Write(ReverseHandedness);
+        writer.Write(ImportEmbeddedTextures);
+        writer.Write(ImportAnimations);
     }
 }
