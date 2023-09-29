@@ -187,7 +187,7 @@ namespace IADEditor.GameProject
             {
                 UnloadGameCodeDll();
 
-                await Task.Run(() => EditorWrapper.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow, Editor.VsCode));
+                await Task.Run(() => EditorWrapper.BuildSolution(this, GetConfigurationName(DllBuildConfiguration), showWindow));
 
                 if (VisualStudio.BuildSucceeded)
                 {
