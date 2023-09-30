@@ -31,6 +31,11 @@
     <ClInclude Include="EngineAPI\GameEntity.hpp" />
     <ClInclude Include="EngineAPI\ScriptComponent.hpp" />
     <ClInclude Include="EngineAPI\TransformComoponent.hpp" />
+    <ClInclude Include="Graphics\Direct3D12\D3D12CommonHeaders.hpp" />
+    <ClInclude Include="Graphics\Direct3D12\D3D12Core.hpp" />
+    <ClInclude Include="Graphics\Direct3D12\D3D12Interface.hpp" />
+    <ClInclude Include="Graphics\GraphicsPlatform.hpp" />
+    <ClInclude Include="Graphics\GraphicsPlatformInterface.hpp" />
     <ClInclude Include="Graphics\Renderer.hpp" />
     <ClInclude Include="Platform\Platform.hpp" />
     <ClInclude Include="Platform\PlatformTypes.hpp" />
@@ -46,6 +51,8 @@
     <ClCompile Include="Content\ContentLoader.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\Main.cpp" />
+    <ClCompile Include="Graphics\Direct3D12\D3D12Core.cpp" />
+    <ClCompile Include="Graphics\Direct3D12\D3D12Interface.cpp" />
     <ClCompile Include="Graphics\Renderer.cpp" />
     <ClCompile Include="Platform\Plarform.cpp" />
   </ItemGroup>
@@ -138,6 +145,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <AdditionalIncludeDirectories>C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>

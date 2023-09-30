@@ -195,10 +195,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="RendererTest\TestRenderer.cpp" />
     <ClCompile Include="TestEntityComponent.cpp" />
     <ClCompile Include="TestWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="RendererTest\TestRenderer.hpp" />
     <ClInclude Include="TestEntityComponent.hpp" />
     <ClInclude Include="Test.hpp" />
     <ClInclude Include="TestWindow.hpp" />

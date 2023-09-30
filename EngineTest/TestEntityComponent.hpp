@@ -6,7 +6,7 @@
 
 using namespace iad;
 
-class EngineTest : public Test
+class engine_test : public test
 {
 public:
 	// Inherited via Test
