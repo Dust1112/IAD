@@ -5,7 +5,7 @@
 
 inline iad::platform::Window _windows[4];
 
-class TestWindow : Test
+class TestWindow : test
 {
 public:
     // Inherited via Test

@@ -3,14 +3,14 @@
 #include <iostream>
 #include <ctime>
 
-bool EngineTest::initialize()
+bool engine_test::initialize()
 {
     srand((u32)time(nullptr));
 
     return true;
 }
 
-void EngineTest::run()
+void engine_test::run()
 {
     do {
         for (u32 i{ 0 }; i < 10000; ++i)
@@ -23,11 +23,11 @@ void EngineTest::run()
     } while (getchar() != 'q');
 }
 
-void EngineTest::shutdown()
+void engine_test::shutdown()
 {
 }
 
-void EngineTest::create_random()
+void engine_test::create_random()
 {
     u32 count = rand() % 20;
     if (entities.empty()) { count = 1000; }
@@ -45,7 +45,7 @@ void EngineTest::create_random()
     }
 }
 
-void EngineTest::remove_random()
+void engine_test::remove_random()
 {
     u32 count = rand() % 20;
     if (entities.size() < 1000) { return; }
@@ -68,7 +68,7 @@ void EngineTest::remove_random()
     }
 }
 
-void EngineTest::print_results()
+void engine_test::print_results()
 {
     std::cout << "Entities created: " << added << "\n";
     std::cout << "Entities removed: " << removed << "\n";
