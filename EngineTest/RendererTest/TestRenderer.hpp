@@ -2,7 +2,7 @@
 
 #include "../Test.hpp"
 
-class engine_test : public test
+class renderer_test : public test
 {
 public:
     bool initialize() override;

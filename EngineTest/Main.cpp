@@ -6,10 +6,13 @@
 
 #if TEST_ENTITY_COMPONENTS
 #include "TestEntityComponent.hpp"
+entity_test test{};
 #elif TEST_WINDOW
 #include "TestWindow.hpp"
+window_test test{};
 #elif TEST_RENDERER
 #include "RendererTest/TestRenderer.hpp"
+renderer_test test{};
 #else
 #error One of the tests need to be enabled
 #endif
@@ -24,8 +27,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #if _DEBUG
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-
-	engine_test test{};
 	
 	if (test.initialize())
 	{

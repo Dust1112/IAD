@@ -13,17 +13,19 @@ namespace iad::graphics
             switch (platform)
             {
             case graphics_platform::direct_3d12:
-                iad::graphics::d3d12::get_platform_interface(gfx);
+                d3d12::get_platform_interface(gfx);
                 break;
             default:
-                break;
+                return false;
             }
+
+            return true;
         }
     }
 
     bool initialize(graphics_platform platform)
     {
-        return set_platform_interface(platform);   
+        return set_platform_interface(platform) && gfx.initialize();   
     }
 
     void shutdown()
