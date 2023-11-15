@@ -4,42 +4,45 @@
 
 #include "../Engine/Platform/PlatformTypes.hpp"
 
-LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+namespace
 {
-    bool isAllClosed{ true };
-    switch (msg)
+    LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
     {
-    case WM_DESTROY:
-        for (u32 i{ 0 }; i < _countof(_windows); ++i)
+        bool isAllClosed{ true };
+        switch (msg)
         {
-            if (!_windows[i].IsClosed())
+        case WM_DESTROY:
+            for (u32 i{ 0 }; i < _countof(_windows); ++i)
             {
-                isAllClosed = false;
+                if (!_windows[i].IsClosed())
+                {
+                    isAllClosed = false;
+                }
             }
-        }
 
-        if (isAllClosed)
-        {
-            PostQuitMessage(0);
-            return 0;
-        }
+            if (isAllClosed)
+            {
+                PostQuitMessage(0);
+                return 0;
+            }
 
-        break;
+            break;
         
-    case WM_SYSCHAR:
-        if (wparam == VK_RETURN && (HIWORD(lparam) & KF_ALTDOWN))
-        {
-            iad::platform::Window window{ iad::platform::window_id{ (iad::id::id_type)GetWindowLongPtr(hwnd, GWLP_USERDATA) } };
-            window.SetFullscreen(!window.IsFullscreen());
-            return 0;
+        case WM_SYSCHAR:
+            if (wparam == VK_RETURN && (HIWORD(lparam) & KF_ALTDOWN))
+            {
+                iad::platform::Window window{ iad::platform::window_id{ (iad::id::id_type)GetWindowLongPtr(hwnd, GWLP_USERDATA) } };
+                window.SetFullscreen(!window.IsFullscreen());
+                return 0;
+            }
+            break;
         }
-        break;
-    }
 
-    return DefWindowProc(hwnd, msg, wparam, lparam);
+        return DefWindowProc(hwnd, msg, wparam, lparam);
+    }   
 }
 
-bool TestWindow::initialize()
+bool window_test::initialize()
 {
     iad::platform::WindowInitInfo info[]
     {
@@ -58,12 +61,12 @@ bool TestWindow::initialize()
     return true;
 }
 
-void TestWindow::run()
+void window_test::run()
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
-void TestWindow::shutdown()
+void window_test::shutdown()
 {
     for (u32 i{ 0 }; i < _countof(_windows); ++i)
     {

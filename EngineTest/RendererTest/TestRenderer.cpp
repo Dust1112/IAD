@@ -8,52 +8,55 @@
 
 iad::graphics::RenderSurface _surfaces[4];
 
-void create_render_surface(iad::graphics::RenderSurface& surface, iad::platform::WindowInitInfo info)
+namespace
 {
-    surface.window = iad::platform::CreateAndInitWindow(&info);
-}
-
-void destroy_render_surface(iad::graphics::RenderSurface& surface)
-{
-    iad::platform::RemoveWindow(surface.window.GetId());
-}
-
-LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
-{
-    bool isAllClosed{ true };
-    switch (msg)
+    void create_render_surface(iad::graphics::RenderSurface& surface, iad::platform::WindowInitInfo info)
     {
-    case WM_DESTROY:
-        for (u32 i{ 0 }; i < _countof(_surfaces); ++i)
-        {
-            if (!_surfaces[i].window.IsClosed())
-            {
-                isAllClosed = false;
-            }
-        }
-
-        if (isAllClosed)
-        {
-            PostQuitMessage(0);
-            return 0;
-        }
-
-        break;
-        
-    case WM_SYSCHAR:
-        if (wparam == VK_RETURN && (HIWORD(lparam) & KF_ALTDOWN))
-        {
-            iad::platform::Window window{ iad::platform::window_id{ (iad::id::id_type)GetWindowLongPtr(hwnd, GWLP_USERDATA) } };
-            window.SetFullscreen(!window.IsFullscreen());
-            return 0;
-        }
-        break;
+        surface.window = iad::platform::CreateAndInitWindow(&info);
     }
 
-    return DefWindowProc(hwnd, msg, wparam, lparam);
+    void destroy_render_surface(iad::graphics::RenderSurface& surface)
+    {
+        iad::platform::RemoveWindow(surface.window.GetId());
+    }
+
+    LRESULT WinProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+    {
+        bool isAllClosed{ true };
+        switch (msg)
+        {
+        case WM_DESTROY:
+            for (u32 i{ 0 }; i < _countof(_surfaces); ++i)
+            {
+                if (!_surfaces[i].window.IsClosed())
+                {
+                    isAllClosed = false;
+                }
+            }
+
+            if (isAllClosed)
+            {
+                PostQuitMessage(0);
+                return 0;
+            }
+
+            break;
+        
+        case WM_SYSCHAR:
+            if (wparam == VK_RETURN && (HIWORD(lparam) & KF_ALTDOWN))
+            {
+                iad::platform::Window window{ iad::platform::window_id{ (iad::id::id_type)GetWindowLongPtr(hwnd, GWLP_USERDATA) } };
+                window.SetFullscreen(!window.IsFullscreen());
+                return 0;
+            }
+            break;
+        }
+
+        return DefWindowProc(hwnd, msg, wparam, lparam);
+    }   
 }
 
-bool engine_test::initialize()
+bool renderer_test::initialize()
 {
     bool result{ iad::graphics::initialize(iad::graphics::graphics_platform::direct_3d12) };
     if (!result) { return result; }
@@ -75,12 +78,12 @@ bool engine_test::initialize()
     return result;
 }
 
-void engine_test::run()
+void renderer_test::run()
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
-void engine_test::shutdown()
+void renderer_test::shutdown()
 {
     for (u32 i{ 0 }; i < _countof(_surfaces); ++i)
     {
