@@ -156,3 +156,9 @@ void iad::graphics::d3d12::core::shutdown()
     release(main_device);
 }
 
+void iad::graphics::d3d12::core::render()
+{
+    begin_frame();
+    
+    end_frame();
+}

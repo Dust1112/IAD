@@ -32,4 +32,10 @@ namespace iad::graphics
     {
         gfx.shutdown();
     }
+
+    void render()
+    {
+        gfx.render();
+    }
+
 }
