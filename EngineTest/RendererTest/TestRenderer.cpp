@@ -81,6 +81,7 @@ bool renderer_test::initialize()
 void renderer_test::run()
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    iad::graphics::render();
 }
 
 void renderer_test::shutdown()
